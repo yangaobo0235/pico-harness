@@ -8,10 +8,10 @@
 Pico 需要 Python 3.12。原生 TUI 使用 Node.js 22；系统缺少合适版本时，安装器
 会下载私有 Node Runtime。
 
-仓库处于 Private 阶段时，先确认当前机器已经配置 Gitee 访问凭证：
+公共仓库直接克隆即可安装：
 
 ```bash
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 cd pico-harness
 ./install.sh
 ```
@@ -19,16 +19,16 @@ cd pico-harness
 Windows PowerShell：
 
 ```powershell
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 Set-Location pico-harness
 .\install.ps1
 ```
 
-安装器会从 Gitee Release 解析 Pico wheel。Private Release 需要
-`PICO_GITEE_TOKEN`；如果维护者提供了固定并经过校验的 wheel，也可以设置
+安装器从 GitHub 获取源码、本地构建 TUI bundle 后完成安装。需要换源时设置
+`PICO_REPO_URL`；如果维护者提供了固定并经过校验的 wheel，也可以设置
 `PICO_WHEEL_URL`。
 
-不要从来路不明的地址安装 wheel，也不要把 Token 写进仓库、命令截图或日志。
+不要把 Token 写进仓库、命令截图或日志；也不要从来路不明的地址安装 wheel。
 
 ## 2. 在目标仓库中启动向导
 

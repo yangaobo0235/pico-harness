@@ -8,38 +8,52 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("name", ["install.sh", "install.ps1"])
-def test_installer_uses_gitee_release_without_private_memory_repository(name: str) -> None:
+def test_installer_builds_from_github_source_without_release_service(name: str) -> None:
     source = (ROOT / name).read_text(encoding="utf-8")
 
-    assert "gitee.com/api/v5/repos" in source
-    assert "PICO_GITEE_REPO" in source
-    assert "releases/latest" in source
+    assert "github.com/yangaobo0235/pico-harness" in source
+    assert "PICO_REPO_URL" in source
     assert "PICO_WHEEL_URL" in source
-    assert "PICO_GITEE_TOKEN" in source
-    assert "PICO_NPM_REGISTRY" in source
-    assert "PICO_NODE_CHECKSUM_BASE" in source
-    assert "PICO_PYPI_INDEX" in source
-    assert "github.com" not in source.lower()
+    # 安装器不得依赖任何 Release 服务或私有制品鉴权。
+    assert "releases/latest" not in source
+    assert "api.github.com" not in source
+    assert "GITHUB_TOKEN" not in source
+    assert "gitee" not in source.lower()
     assert "myna" not in source.lower()
     assert "--with-executables-from" not in source
     assert "pico onboard --skip-memory" in source
+    assert "PICO_NPM_REGISTRY" in source
+    assert "PICO_NODE_CHECKSUM_BASE" in source
+    assert "PICO_PYPI_INDEX" in source
 
 
-def test_posix_installer_downloads_private_wheel_before_uv_install() -> None:
+@pytest.mark.parametrize("name", ["install.sh", "install.ps1"])
+def test_installer_builds_tui_bundle_before_uv_install(name: str) -> None:
+    source = (ROOT / name).read_text(encoding="utf-8")
+
+    # TUI bundle 是被 Git 忽略的构建产物，安装路径必须先保证它存在。
+    assert "build_tui_if_needed" in source or "Build-TuiBundle" in source
+    assert "ui-tui" in source
+    assert "npm" in source
+    build_pos = min(source.index(m) for m in ("build_tui_if_needed", "Build-TuiBundle") if m in source)
+    install_pos = source.index("tool install")
+    assert build_pos < install_pos
+
+
+def test_posix_installer_clones_into_pico_home_src() -> None:
     source = (ROOT / "install.sh").read_text(encoding="utf-8")
 
-    assert "gitee_curl" in source
-    assert '-H "Authorization: Bearer $PICO_GITEE_TOKEN"' not in source
-    assert '"$wheel_url" -o "$wheel_path"' in source
-    assert 'uv tool install --force "pico-harness[channels] @ $wheel_source"' in source
+    assert 'git clone --depth 1 "$PICO_REPO_URL" "$src_dir"' in source
+    assert 'src_dir="$PICO_HOME/src/pico-harness"' in source
+    assert 'uv tool install --force "$src_dir[channels]"' in source
 
 
-def test_powershell_installer_downloads_private_wheel_before_uv_install() -> None:
+def test_powershell_installer_clones_into_pico_home_src() -> None:
     source = (ROOT / "install.ps1").read_text(encoding="utf-8")
 
-    assert '"Authorization"] = "Bearer $env:PICO_GITEE_TOKEN"' in source
-    assert "Invoke-WebRequest $wheelUrl -Headers $headers -OutFile $wheelPath" in source
-    assert '"pico-harness[channels] @ $wheelSource"' in source
+    assert "git clone --depth 1 $PicoRepoUrl $srcDir" in source
+    assert 'Join-Path $PicoHome "src\\pico-harness"' in source
+    assert "Install-FromCheckout $UvPath $srcDir" in source
 
 
 @pytest.mark.parametrize("name", ["install.sh", "install.ps1"])

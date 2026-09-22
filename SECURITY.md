@@ -3,7 +3,8 @@
 请不要在公开 Issue、Pull Request、群聊或日志中披露漏洞细节、利用方式、Token、密码、
 私钥、内部地址或个人数据。
 
-发现潜在安全问题时，请先通过 Gitee 私信联系仓库所有者 `htxoffical`，只说明你希望
+发现潜在安全问题时，请优先通过仓库 Security 标签页的 "Report a vulnerability"
+私密入口提交，或先在 GitHub 上私信联系仓库所有者 `yangaobo0235`，只说明你希望
 私下报告 Pico 安全问题，不要在第一条消息中发送漏洞细节。维护者会提供后续的私密
 沟通方式。
 

@@ -35,21 +35,21 @@ def test_docs_are_limited_to_onboarding_evaluation_and_public_fixtures(tmp_path:
     ]
 
 
-def test_only_public_gitee_contribution_templates_are_allowed(tmp_path: Path) -> None:
-    gitee = tmp_path / ".gitee"
-    gitee.mkdir()
-    issue_template = gitee / "ISSUE_TEMPLATE.zh-CN.md"
-    issue_template.write_text("public issue template", encoding="utf-8")
-    private_note = gitee / "maintainer-notes.md"
+def test_only_public_github_contribution_templates_are_allowed(tmp_path: Path) -> None:
+    github_dir = tmp_path / ".github"
+    github_dir.mkdir()
+    pr_template = github_dir / "PULL_REQUEST_TEMPLATE.md"
+    pr_template.write_text("public pull request template", encoding="utf-8")
+    private_note = github_dir / "maintainer-notes.md"
     private_note.write_text("internal", encoding="utf-8")
 
     assert check_public_tree(
         tmp_path,
         tracked_paths=[
-            ".gitee/ISSUE_TEMPLATE.zh-CN.md",
-            ".gitee/maintainer-notes.md",
+            ".github/PULL_REQUEST_TEMPLATE.md",
+            ".github/maintainer-notes.md",
         ],
-    ) == ["forbidden Gitee metadata path: .gitee/maintainer-notes.md"]
+    ) == ["forbidden GitHub metadata path: .github/maintainer-notes.md"]
 
 
 def test_secret_bearing_file_extensions_are_rejected(tmp_path: Path) -> None:

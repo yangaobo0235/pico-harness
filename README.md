@@ -43,10 +43,10 @@ flowchart LR
 Pico 需要 Python 3.12。原生 TUI 使用 Node.js 22；系统缺少合适版本时，安装器
 可以配置私有 Node Runtime。
 
-仓库处于 Private 阶段时，先使用已经配置好的 Gitee 凭证克隆，再运行安装器：
+克隆公共仓库，再运行安装器：
 
 ```bash
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 cd pico-harness
 ./install.sh
 ```
@@ -54,18 +54,18 @@ cd pico-harness
 Windows PowerShell：
 
 ```powershell
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 Set-Location pico-harness
 .\install.ps1
 ```
 
-安装器从 Gitee Release 解析 Pico wheel，并默认使用国内 Python 与 Node.js 镜像。
-访问 Private Release 时设置 `PICO_GITEE_TOKEN`；需要固定制品时，可以设置
-`PICO_WHEEL_URL` 指向经过信任的 wheel。
+安装器从 GitHub 克隆 Pico 源码、本地构建 TUI bundle 后完成安装，并默认使用国内
+Python 与 Node.js 镜像。需要固定制品时，可以设置 `PICO_WHEEL_URL` 指向经过信任的
+wheel；需要换源时，可以设置 `PICO_REPO_URL`。
 
 | 安装控制项 | 用途 |
 | --- | --- |
-| `PICO_GITEE_TOKEN` | 读取 Private Gitee Release |
+| `PICO_REPO_URL` | 覆盖克隆用的 Pico 源码仓库地址 |
 | `PICO_WHEEL_URL` | 直接安装经过信任的 Pico wheel |
 | `PICO_PYPI_INDEX` | 覆盖 Python 包索引 |
 | `PICO_NODE_MIRROR` | 覆盖 Node.js 下载镜像 |
@@ -87,7 +87,7 @@ LLM 凭证 -> 明确关闭 Memory -> 第一条真实 Turn
          -> 运行位置 -> 可选消息渠道
 ```
 
-当前 Gitee 发布不包含外部 Memory 实现，因此 `--skip-memory` 是受支持的路径。
+当前 GitHub 发布不包含外部 Memory 实现，因此 `--skip-memory` 是受支持的路径。
 Pico 会写入 `memory.backend = null`，不会把缺失的 Backend 伪装成健康状态。
 
 向导完成后：
@@ -101,7 +101,7 @@ pico doctor --probe
 `pico doctor --probe` 会发送一次真实模型请求。静态配置检查通过，或者跳过 probe，
 都不能证明 Provider 已经返回回复。
 
-[首次使用指南](docs/onboarding/README.zh-CN.md)包含 Private Release 鉴权、
+[首次使用指南](docs/onboarding/README.zh-CN.md)包含源码安装细节、
 非交互配置、精确验收命令和常见恢复路径。
 
 ## Pico 负责什么
@@ -181,7 +181,7 @@ pico gateway --workspace "$PWD" --verbose
 该问题的 Pull Request。
 
 完整流程、分支说明和本地验证命令见[贡献指南](CONTRIBUTING.md)。Bug 报告请使用
-Gitee Issue 模板，并在公开内容中移除 Token、私钥、内部地址和个人数据。
+GitHub Issue 模板，并在公开内容中移除 Token、私钥、内部地址和个人数据。
 
 ## 开发与验证
 

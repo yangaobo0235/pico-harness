@@ -1,6 +1,6 @@
-# Pico 国内 Windows PowerShell 一键安装脚本。
+﻿# Pico 国内 Windows PowerShell 一键安装脚本。
 #
-# 远程：设置 PICO_GITEE_TOKEN 后，使用 README 中的鉴权命令。
+# 远程：irm https://raw.githubusercontent.com/yangaobo0235/pico-harness/main/install.ps1 | iex
 #
 # 目标：让全新 Windows 机器无需管理员权限即可运行 `pico`。脚本具备幂等性，
 # 会复用已有工具并只补齐缺项：
@@ -8,15 +8,15 @@
 #   2. Node.js >= 22 （TUI 运行时；系统缺少时私有安装）
 #   3. pico          （作为全局 uv 工具安装）
 #
-# 私有仓库阶段设置 PICO_GITEE_TOKEN；也可用 PICO_WHEEL_URL 固定 wheel。
+# 远程模式从 GitHub 克隆源码并本地构建 TUI bundle；可用 PICO_REPO_URL 换源，
+# 也可用 PICO_WHEEL_URL 直接安装经过信任的 wheel。
 
 $ErrorActionPreference = "Stop"
 
 $MinNodeMajor = 22
 $PicoHome = if ($env:PICO_HOME) { $env:PICO_HOME } else { Join-Path $HOME ".pico" }
 $NodeRuntimeDir = Join-Path $PicoHome "runtime"
-$PicoGiteeOwner = if ($env:PICO_GITEE_OWNER) { $env:PICO_GITEE_OWNER } else { "htxoffical" }
-$PicoGiteeRepo = if ($env:PICO_GITEE_REPO) { $env:PICO_GITEE_REPO } else { "pico-harness" }
+$PicoRepoUrl = if ($env:PICO_REPO_URL) { $env:PICO_REPO_URL } else { "https://github.com/yangaobo0235/pico-harness.git" }
 $PicoNodeMirror = if ($env:PICO_NODE_MIRROR) { $env:PICO_NODE_MIRROR.TrimEnd('/') } else { "https://mirrors.aliyun.com/nodejs-release" }
 $PicoNodeChecksumBase = if ($env:PICO_NODE_CHECKSUM_BASE) { $env:PICO_NODE_CHECKSUM_BASE.TrimEnd('/') } else { "https://nodejs.org/dist" }
 $PicoNpmRegistry = if ($env:PICO_NPM_REGISTRY) { $env:PICO_NPM_REGISTRY } else { "https://registry.npmmirror.com" }
@@ -197,22 +197,56 @@ function Ensure-Node {
     }
 }
 
-function Resolve-PicoReleaseAssets {
-    if ($env:PICO_WHEEL_URL) {
-        return $env:PICO_WHEEL_URL
+function Build-TuiBundle([string]$CheckoutDir) {
+    # Checkout 内没有 TUI bundle 时现场构建；该产物被 Git 忽略，
+    # 缺失时安装后的 `pico` 无法启动。系统 Node 优先，其次私有 Node。
+    $entry = Join-Path $CheckoutDir "ui-tui\dist\entry.js"
+    if (Test-Path $entry) { return }
+    $node = $null
+    $systemNode = Get-Command node -ErrorAction SilentlyContinue
+    if ($systemNode -and (Test-NodeOk $systemNode.Source)) { $node = $systemNode.Source }
+    if (-not $node) { $node = Find-PrivateNode }
+    if (-not $node) {
+        Write-Warn "No usable node found; skipping TUI build; pico may not work"
+        return
     }
-    Write-Info "Resolving the latest Pico release from Gitee..."
-    $headers = @{}
-    if ($env:PICO_GITEE_TOKEN) {
-        $headers["Authorization"] = "Bearer $env:PICO_GITEE_TOKEN"
+    Add-ProcessPath (Split-Path $node -Parent)
+    $npm = Get-Command npm -ErrorAction SilentlyContinue
+    if (-not $npm) {
+        Write-Warn "Found node but not npm; skipping TUI build; pico may not work"
+        return
     }
-    $releaseApi = "https://gitee.com/api/v5/repos/$PicoGiteeOwner/$PicoGiteeRepo/releases/latest"
-    $release = Invoke-RestMethod $releaseApi -Headers $headers
-    $picoAsset = $release.assets | Where-Object { $_.browser_download_url -match "/pico_harness-[^/]+\.whl$" } | Select-Object -First 1
-    if (-not $picoAsset) {
-        Fail "Could not resolve the latest Pico wheel from Gitee. For a private repository, set PICO_GITEE_TOKEN; alternatively set PICO_WHEEL_URL."
+    Write-Info "Building the TUI bundle (ui-tui/dist/entry.js)..."
+    Push-Location (Join-Path $CheckoutDir "ui-tui")
+    try {
+        & $npm.Source ci --registry $PicoNpmRegistry
+        & $npm.Source run build
+    } finally {
+        Pop-Location
     }
-    return $picoAsset.browser_download_url
+}
+
+function Install-FromCheckout([string]$UvPath, [string]$DirPath, [switch]$Editable) {
+    $previousIndex = $env:UV_DEFAULT_INDEX
+    $env:UV_DEFAULT_INDEX = $PicoPyPIIndex
+    try {
+        if ($Editable) {
+            & $UvPath tool install --force -e "$DirPath[channels]"
+        } else {
+            & $UvPath tool install --force "$DirPath[channels]"
+        }
+        if ($LASTEXITCODE -ne 0) { throw "channel extras install failed" }
+    } catch {
+        Write-Warn "Channel dependencies failed to install; installed base pico only. Some channels stay unavailable (see: pico channels list)."
+        if ($Editable) {
+            & $UvPath tool install --force -e "$DirPath"
+        } else {
+            & $UvPath tool install --force $DirPath
+        }
+        if ($LASTEXITCODE -ne 0) { Fail "Pico install failed." }
+    } finally {
+        $env:UV_DEFAULT_INDEX = $previousIndex
+    }
 }
 
 function Install-Pico([string]$UvPath, [string]$NodePath) {
@@ -220,53 +254,11 @@ function Install-Pico([string]$UvPath, [string]$NodePath) {
     $pyproject = Join-Path $scriptDir "pyproject.toml"
     if ((Test-Path $pyproject) -and (Select-String -Path $pyproject -Pattern '^name = "pico-harness"' -Quiet)) {
         Write-Info "Detected local Pico source checkout; installing editable: $scriptDir"
-        $entry = Join-Path $scriptDir "ui-tui\dist\entry.js"
-        if (-not (Test-Path $entry)) {
-            $nodeDir = Split-Path $NodePath -Parent
-            Add-ProcessPath $nodeDir
-            $npm = Get-Command npm -ErrorAction SilentlyContinue
-            if ($npm) {
-                Write-Info "Building TUI bundle (ui-tui/dist/entry.js)..."
-                Push-Location (Join-Path $scriptDir "ui-tui")
-                try {
-                    & $npm.Source ci --registry $PicoNpmRegistry
-                    & $npm.Source run build
-                } finally {
-                    Pop-Location
-                }
-            } else {
-                Write-Warn "Found node but not npm; skipping TUI bundle build"
-            }
-        }
-        $previousIndex = $env:UV_DEFAULT_INDEX
-        $env:UV_DEFAULT_INDEX = $PicoPyPIIndex
-        try {
-            & $UvPath tool install --force -e "$scriptDir[channels]"
-            if ($LASTEXITCODE -ne 0) { throw "channel extras install failed" }
-        } catch {
-            Write-Warn "Channel dependencies failed to install; installed base pico only. Some channels stay unavailable (see: pico channels list)."
-            & $UvPath tool install --force -e "$scriptDir"
-            if ($LASTEXITCODE -ne 0) { Fail "Pico install failed." }
-        } finally {
-            $env:UV_DEFAULT_INDEX = $previousIndex
-        }
-    } else {
-        $wheelUrl = Resolve-PicoReleaseAssets
-        $wheelSource = $wheelUrl
-        $wheelTemp = $null
-        if ($env:PICO_GITEE_TOKEN -and $wheelUrl.StartsWith("https://gitee.com/")) {
-            $wheelName = [IO.Path]::GetFileName(([uri]$wheelUrl).AbsolutePath)
-            if (-not $wheelName.EndsWith(".whl")) {
-                Fail "Resolved Gitee asset is not a wheel: $wheelName"
-            }
-            $wheelTemp = Join-Path ([IO.Path]::GetTempPath()) ("pico-wheel-" + [guid]::NewGuid().ToString("N"))
-            New-Item -ItemType Directory -Path $wheelTemp -Force | Out-Null
-            $wheelPath = Join-Path $wheelTemp $wheelName
-            $headers = @{ "Authorization" = "Bearer $env:PICO_GITEE_TOKEN" }
-            Write-Info "Downloading private Gitee release wheel..."
-            Invoke-WebRequest $wheelUrl -Headers $headers -OutFile $wheelPath
-            $wheelSource = $wheelPath
-        }
+        Build-TuiBundle $scriptDir
+        Install-FromCheckout $UvPath $scriptDir -Editable
+    } elseif ($env:PICO_WHEEL_URL) {
+        # 固定制品：直接安装维护者提供并经过信任的 wheel。
+        $wheelSource = $env:PICO_WHEEL_URL
         Write-Info "  installing $wheelSource"
         $previousIndex = $env:UV_DEFAULT_INDEX
         $env:UV_DEFAULT_INDEX = $PicoPyPIIndex
@@ -279,10 +271,25 @@ function Install-Pico([string]$UvPath, [string]$NodePath) {
             if ($LASTEXITCODE -ne 0) { Fail "Pico install failed." }
         } finally {
             $env:UV_DEFAULT_INDEX = $previousIndex
-            if ($wheelTemp -and (Test-Path $wheelTemp)) {
-                Remove-Item $wheelTemp -Recurse -Force -ErrorAction SilentlyContinue
-            }
         }
+    } else {
+        # 远程模式：克隆（或更新）Pico HOME 下的长期源码检出，再非可编辑安装。
+        if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+            Fail "git is required to clone Pico; install git or set PICO_WHEEL_URL to a trusted wheel."
+        }
+        $srcDir = Join-Path $PicoHome "src\pico-harness"
+        if (Test-Path (Join-Path $srcDir ".git")) {
+            Write-Info "Updating the existing Pico checkout at $srcDir..."
+            & git -C $srcDir pull --ff-only
+            if ($LASTEXITCODE -ne 0) { Write-Warn "git pull failed; continuing with the existing checkout at $srcDir" }
+        } else {
+            Write-Info "Cloning $PicoRepoUrl..."
+            New-Item -ItemType Directory -Path (Join-Path $PicoHome "src") -Force | Out-Null
+            & git clone --depth 1 $PicoRepoUrl $srcDir
+            if ($LASTEXITCODE -ne 0) { Fail "git clone failed: $PicoRepoUrl" }
+        }
+        Build-TuiBundle $srcDir
+        Install-FromCheckout $UvPath $srcDir
     }
     & $UvPath tool update-shell | Out-Null
     Write-Ok "Pico installed"

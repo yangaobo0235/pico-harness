@@ -12,7 +12,7 @@ pico plugins
 pico doctor --json
 ```
 
-当前 Gitee 发布的受支持处理方式是显式关闭 Memory：
+当前 GitHub 发布的受支持处理方式是显式关闭 Memory：
 
 ```bash
 pico onboard --skip-memory --reset
@@ -20,17 +20,19 @@ pico onboard --skip-memory --reset
 
 `--reset` 会重新进入配置流程。执行前记录现有 Provider、Sandbox 和渠道选择。
 
-## 安装器无法读取 Private Release
+## 安装器无法获取源码
 
-确认当前账号可以访问仓库，并通过环境变量提供 Token：
+确认机器上有 `git`，并且当前网络（或代理）能访问 GitHub：
 
 ```bash
-export PICO_GITEE_TOKEN="<your-gitee-token>"
-./install.sh
+git --version
+git ls-remote https://github.com/yangaobo0235/pico-harness.git HEAD
 ```
 
-不要把 Token 放进远程 URL、仓库文件或故障截图。需要固定制品时，使用维护者提供并
-经过校验的 `PICO_WHEEL_URL`。
+需要镜像到内部源码仓库时，设置 `PICO_REPO_URL` 指向维护者确认过的地址。需要固定
+制品时，使用维护者提供并经过校验的 `PICO_WHEEL_URL`。
+
+不要把凭证放进远程 URL、仓库文件或故障截图。
 
 ## Provider 预检通过，第一条 Turn 失败
 

@@ -54,13 +54,11 @@ def _missing_dep_hint(modname: str) -> str:
     if sys.platform == "win32":
         return (
             "Re-run the Pico installer to add channels: "
-            '$h = @{Authorization="Bearer $env:PICO_GITEE_TOKEN"}; '
-            "irm https://gitee.com/htxoffical/pico-harness/raw/main/install.ps1 -Headers $h | iex"
+            "irm https://raw.githubusercontent.com/yangaobo0235/pico-harness/main/install.ps1 | iex"
         )
     return (
         "Re-run the Pico installer to add channels: "
-        "printf 'Authorization: Bearer %s\\n' \"$PICO_GITEE_TOKEN\" | "
-        "curl -fsSL -H @- https://gitee.com/htxoffical/pico-harness/raw/main/install.sh | sh"
+        "curl -fsSL https://raw.githubusercontent.com/yangaobo0235/pico-harness/main/install.sh | sh"
     )
 
 

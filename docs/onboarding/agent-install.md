@@ -7,7 +7,7 @@
 
 - 目标操作系统：macOS/Linux 或 Windows。
 - 目标 Git 仓库的绝对路径。
-- 私有 Gitee 仓库的访问权限，或者一个可信的 `PICO_WHEEL_URL`。
+- 可以克隆公共 GitHub 仓库的网络环境，或者一个可信的 `PICO_WHEEL_URL`。
 - 由用户直接提供的 Provider 选择和凭证。
 - 是否允许执行一次真实计费的首条 Turn。没有明确授权时默认不允许。
 - 本次范围是否包含消息渠道。默认不包含。
@@ -17,10 +17,10 @@
 
 ## 安装
 
-Private 发布场景下，使用用户已经配置的 Gitee 凭证，并在 Checkout 中运行安装器：
+先克隆公共仓库，再在 Checkout 中运行安装器：
 
 ```bash
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 cd pico-harness
 ./install.sh
 ```
@@ -28,14 +28,14 @@ cd pico-harness
 Windows PowerShell：
 
 ```powershell
-git clone https://gitee.com/htxoffical/pico-harness.git
+git clone https://github.com/yangaobo0235/pico-harness.git
 Set-Location pico-harness
 .\install.ps1
 ```
 
-安装器需要读取 Private Release 时，从用户环境中获取 `PICO_GITEE_TOKEN`。不要打印它，
-不要放进 URL，也不要写入文件。`PICO_WHEEL_URL` 可能包含带签名的查询参数，报告和
-捕获到的输出中都要脱敏。
+安装器从 GitHub 获取源码并本地构建 TUI bundle；换源时用 `PICO_REPO_URL`，不要
+推测其他发布地址。`PICO_WHEEL_URL` 可能包含带签名的查询参数，报告和捕获到的输出
+中都要脱敏。
 
 ## 属于用户的配置边界
 

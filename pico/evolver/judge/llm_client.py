@@ -180,7 +180,7 @@ class OpenRouterBackend(JudgeLLMBackend):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             # OpenRouter 建议标识调用方，以便进行路由分析：
-            "HTTP-Referer": "https://gitee.com/htxoffical/pico-harness",
+            "HTTP-Referer": "https://github.com/yangaobo0235/pico-harness",
             "X-Title": "Pico Harness Evolver",
         }
 

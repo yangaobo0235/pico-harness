@@ -1,8 +1,8 @@
 #!/bin/sh
 # Pico 国内一键安装脚本（macOS/Linux）。
 #
-#   远程：设置 PICO_GITEE_TOKEN 后，使用 README 中不暴露令牌的鉴权命令。
-#   本地：git clone ... && cd pico && ./install.sh
+#   远程：curl -fsSL https://raw.githubusercontent.com/yangaobo0235/pico-harness/main/install.sh | sh
+#   本地：git clone ... && cd pico-harness && ./install.sh
 #
 # 目标：让全新机器无需手工步骤即可从任意目录运行 `pico`。脚本具备幂等性，
 # 会探测已有内容并只补齐缺项：
@@ -10,7 +10,8 @@
 #   2. Node.js >= 22 （TUI 运行时；系统缺少时私有安装）
 #   3. pico          （作为全局 uv 工具安装到 ~/.local/bin/pico）
 #
-# 私有仓库阶段设置 PICO_GITEE_TOKEN；也可用 PICO_WHEEL_URL 固定 wheel。
+# 远程模式从 GitHub 克隆源码并本地构建 TUI bundle；可用 PICO_REPO_URL 换源，
+# 或用 PICO_WHEEL_URL 直接安装经过信任的 wheel。
 #
 # 刻意使用 POSIX sh，使脚本不仅能在 Bash 下运行，也支持 dash/ash。
 set -eu
@@ -19,14 +20,12 @@ set -eu
 MIN_NODE_MAJOR=22
 PICO_HOME="${PICO_HOME:-${HOME:?HOME is required, or set PICO_HOME explicitly}/.pico}"
 NODE_RUNTIME_DIR="$PICO_HOME/runtime"
-PICO_GITEE_OWNER="${PICO_GITEE_OWNER:-htxoffical}"
-PICO_GITEE_REPO="${PICO_GITEE_REPO:-pico-harness}"
+PICO_REPO_URL="${PICO_REPO_URL:-https://github.com/yangaobo0235/pico-harness.git}"
 PICO_NODE_MIRROR="${PICO_NODE_MIRROR:-https://mirrors.aliyun.com/nodejs-release}"
 PICO_NODE_CHECKSUM_BASE="${PICO_NODE_CHECKSUM_BASE:-https://nodejs.org/dist}"
 PICO_NPM_REGISTRY="${PICO_NPM_REGISTRY:-https://registry.npmmirror.com}"
 PICO_PYPI_INDEX="${PICO_PYPI_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}"
 PICO_UV_INSTALL_URL="${PICO_UV_INSTALL_URL:-https://astral.sh/uv/install.sh}"
-PICO_INSTALL_TMP=""
 
 # --- 格式化输出 ------------------------------------------------------------
 info()  { printf '\033[1;34m>\033[0m %s\n' "$1"; }
@@ -34,15 +33,6 @@ ok()    { printf '\033[1;32m+\033[0m %s\n' "$1"; }
 warn()  { printf '\033[1;33m!\033[0m %s\n' "$1" >&2; }
 die()   { printf '\033[1;31mx\033[0m %s\n' "$1" >&2; exit 1; }
 have()  { command -v "$1" >/dev/null 2>&1; }
-gitee_curl() {
-  printf 'Authorization: Bearer %s\n' "$PICO_GITEE_TOKEN" | curl -fsSL -H @- "$@"
-}
-cleanup() {
-  if [ -n "$PICO_INSTALL_TMP" ] && [ -d "$PICO_INSTALL_TMP" ]; then
-    rm -rf "$PICO_INSTALL_TMP"
-  fi
-}
-trap cleanup EXIT
 
 # --- 0. 平台探测 -----------------------------------------------------------
 detect_platform() {
@@ -154,76 +144,68 @@ ensure_node() {
 }
 
 # --- 3. 安装 Pico ----------------------------------------------------------
+# Checkout 内没有 TUI bundle 且存在可用 Node 时现场构建；该产物被 Git 忽略，
+# 缺失时安装后的 `pico` 无法启动。
+build_tui_if_needed() {
+  checkout_dir="$1"
+  [ -f "$checkout_dir/ui-tui/dist/entry.js" ] && return 0
+  node_bin="$(command -v node || true)"
+  [ -n "$node_bin" ] || node_bin="$(private_node_bin || true)"
+  if [ -n "$node_bin" ] && [ -x "$node_bin" ]; then
+    node_dir="$(dirname "$node_bin")"
+    # npm 随 Node 一起发布，但使用前仍需显式验证。
+    if PATH="$node_dir:$PATH" command -v npm >/dev/null 2>&1; then
+      info "Building the TUI bundle (ui-tui/dist/entry.js)..."
+      ( cd "$checkout_dir/ui-tui" && PATH="$node_dir:$PATH" npm ci --registry "$PICO_NPM_REGISTRY" && PATH="$node_dir:$PATH" npm run build )
+    else
+      warn "Found node but not npm; skipping TUI build; pico may not work"
+    fi
+  else
+    warn "No usable node found; skipping TUI build; pico may not work"
+  fi
+}
+
 install_pico() {
-  # 本地模式：从 Pico 源码检出运行时，以可编辑模式安装工作树，符合开发者预期；
-  # 否则从 Git 安装。
+  # 本地模式：在 Pico 源码检出内运行时，按开发者预期以可编辑模式安装工作树；
+  # 远程模式：从 GitHub 克隆源码，构建 TUI 后以非可编辑模式安装。
   script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
   if [ -f "$script_dir/pyproject.toml" ] && grep -q '^name = "pico-harness"' "$script_dir/pyproject.toml" 2>/dev/null; then
     info "Local Pico source detected; editable install: $script_dir"
-    # 首次运行前必须存在 TUI 包。开发检出不会提交该产物，因此 Node 可用时现在构建。
-    if [ ! -f "$script_dir/ui-tui/dist/entry.js" ]; then
-      node_bin="$(command -v node || true)"
-      [ -n "$node_bin" ] || node_bin="$(private_node_bin || true)"
-      if [ -n "$node_bin" ] && [ -x "$node_bin" ]; then
-        node_dir="$(dirname "$node_bin")"
-        # npm 随 Node 一起发布，但使用前仍需显式验证。
-        if PATH="$node_dir:$PATH" command -v npm >/dev/null 2>&1; then
-          info "Building the TUI bundle (ui-tui/dist/entry.js)..."
-          ( cd "$script_dir/ui-tui" && PATH="$node_dir:$PATH" npm ci --registry "$PICO_NPM_REGISTRY" && PATH="$node_dir:$PATH" npm run build )
-        else
-          warn "Found node but not npm; skipping TUI build; pico may not work"
-        fi
-      else
-        warn "No usable node found; skipping TUI build; pico may not work"
-      fi
-    fi
+    build_tui_if_needed "$script_dir"
     install_result=0
     UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force -e "$script_dir[channels]" || install_result=$?
     if [ "$install_result" -ne 0 ]; then
       warn "Channel dependencies failed to install; installed base pico only. Some channels stay unavailable (see: pico channels list)."
       UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force -e "$script_dir"
     fi
-  else
-    # 远程模式：安装最新发布的 wheel，其中包含由 CI 构建的
-    # ui-tui/dist/entry.js。此处刻意不从 Git 安装，因为 TUI 包是被 Git 忽略的
-    # 构建产物，Git 安装会得到无法启动 `pico` 的包。可通过 PICO_WHEEL_URL
-    # 固定特定 wheel。
-    wheel_url="${PICO_WHEEL_URL:-}"
-    if [ -z "$wheel_url" ]; then
-      release_api="https://gitee.com/api/v5/repos/${PICO_GITEE_OWNER}/${PICO_GITEE_REPO}/releases/latest"
-      info "Resolving the latest Pico release from Gitee..."
-      if [ -n "${PICO_GITEE_TOKEN:-}" ]; then
-        release_json="$(gitee_curl "$release_api" 2>/dev/null || true)"
-      else
-        release_json="$(curl -fsSL "$release_api" 2>/dev/null || true)"
-      fi
-      wheel_url="$(printf '%s' "$release_json" | grep -oE 'https://[^"]*/pico_harness-[^"]*\.whl' | head -n1)"
-    fi
-    [ -n "$wheel_url" ] || die "Could not resolve the latest Pico wheel from Gitee. For a private repository, set PICO_GITEE_TOKEN; alternatively set PICO_WHEEL_URL."
-    wheel_source="$wheel_url"
-    if [ -n "${PICO_GITEE_TOKEN:-}" ]; then
-      case "$wheel_url" in
-        https://gitee.com/*)
-          PICO_INSTALL_TMP="$(mktemp -d)"
-          wheel_name="${wheel_url%%\?*}"
-          wheel_name="${wheel_name##*/}"
-          case "$wheel_name" in
-            *.whl) ;;
-            *) die "Resolved Gitee asset is not a wheel: $wheel_name" ;;
-          esac
-          wheel_path="$PICO_INSTALL_TMP/$wheel_name"
-          info "Downloading private Gitee release wheel..."
-          gitee_curl "$wheel_url" -o "$wheel_path"
-          wheel_source="$wheel_path"
-          ;;
-      esac
-    fi
+  elif [ -n "${PICO_WHEEL_URL:-}" ]; then
+    # 固定制品：直接安装维护者提供并经过信任的 wheel。
+    wheel_source="$PICO_WHEEL_URL"
     info "  installing $wheel_source"
     install_result=0
     UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force "pico-harness[channels] @ $wheel_source" || install_result=$?
     if [ "$install_result" -ne 0 ]; then
       warn "Channel dependencies failed to install; installed base pico only. Some channels stay unavailable (see: pico channels list)."
       UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force "$wheel_source"
+    fi
+  else
+    have git || die "git is required to clone Pico; install git or set PICO_WHEEL_URL to a trusted wheel."
+    src_dir="$PICO_HOME/src/pico-harness"
+    if [ -d "$src_dir/.git" ]; then
+      info "Updating the existing Pico checkout at $src_dir..."
+      git -C "$src_dir" pull --ff-only \
+        || warn "git pull failed; continuing with the existing checkout at $src_dir"
+    else
+      info "Cloning $PICO_REPO_URL..."
+      mkdir -p "$PICO_HOME/src"
+      git clone --depth 1 "$PICO_REPO_URL" "$src_dir"
+    fi
+    build_tui_if_needed "$src_dir"
+    install_result=0
+    UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force "$src_dir[channels]" || install_result=$?
+    if [ "$install_result" -ne 0 ]; then
+      warn "Channel dependencies failed to install; installed base pico only. Some channels stay unavailable (see: pico channels list)."
+      UV_DEFAULT_INDEX="$PICO_PYPI_INDEX" uv tool install --force "$src_dir"
     fi
   fi
   # 确保后续 shell 的 PATH 包含 uv 工具目录 ~/.local/bin。

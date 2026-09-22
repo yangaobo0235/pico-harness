@@ -5,7 +5,7 @@
 
 ## 从哪里开始
 
-1. 在 [Gitee Issues](https://gitee.com/htxoffical/pico-harness/issues) 中选择带有
+1. 在 [GitHub Issues](https://github.com/yangaobo0235/pico-harness/issues) 中选择带有
    `good-first-issue` 或 `help-wanted` 标签的任务。
 2. 阅读 Issue 中的目标分支、范围、相关文件、非目标和验收命令。
 3. 在 Issue 下留言：`我来认领，预计在 7 天内提交 PR。`
@@ -69,14 +69,14 @@ test(channels): cover topic reply routing
 PR 描述至少包含：
 
 - 修改内容和原因；
-- 关联的 Gitee Issue；
+- 关联的 GitHub Issue；
 - 精确验证命令及结果；
 - 风险和回滚方式；
 - 目标分支。
 
 ## 问题、Bug 与安全报告
 
-普通使用问题可以先在 Pico 飞书社区中提问。能够稳定复现的 Bug 再转为 Gitee Issue，
+普通使用问题可以先在 Pico 飞书社区中提问。能够稳定复现的 Bug 再转为 GitHub Issue，
 并填写环境、复现步骤、预期行为、实际行为和已脱敏日志。
 
 不要在公开 Issue 中报告安全漏洞，也不要粘贴 Token、App Secret、SSH 私钥、内部地址

@@ -46,7 +46,7 @@ _ALNUM = string.ascii_letters + string.digits
 # HTTP-Referer="https://litellm.ai"，这会让 openrouter.ai/apps 把流量归因给
 # LiteLLM 而非 Pico。这里显式覆盖默认值；用户提供的 extra_headers 优先级更高。
 _OPENROUTER_ATTRIBUTION: dict[str, str] = {
-    "HTTP-Referer": "https://gitee.com/htxoffical/pico-harness",
+    "HTTP-Referer": "https://github.com/yangaobo0235/pico-harness",
     "X-Title": "Pico Agent Harness",
     "X-OpenRouter-Title": "Pico Agent Harness",
     "X-OpenRouter-Categories": "cli-agent,personal-agent",

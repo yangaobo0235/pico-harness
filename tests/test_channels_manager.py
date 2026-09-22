@@ -390,7 +390,8 @@ def test_hint_non_editable_points_to_installer(monkeypatch, raw):
     hint = _missing_dep_hint("wecom")
     assert "uv sync" not in hint
     assert "install.sh" in hint
-    assert "PICO_GITEE_TOKEN" in hint
+    assert "PICO_GITHUB_TOKEN" not in hint
+    assert "raw.githubusercontent.com/yangaobo0235/pico-harness" in hint
 
 
 def test_hint_package_not_found_points_to_installer(monkeypatch):

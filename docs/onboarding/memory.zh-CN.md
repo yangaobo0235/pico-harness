@@ -1,6 +1,6 @@
 # Memory 发布边界
 
-Pico 保留 Memory Backend 协议和可选适配接口，但当前 Gitee 发布不包含外部
+Pico 保留 Memory Backend 协议和可选适配接口，但当前 GitHub 发布不包含外部
 Memory 实现、安装地址或配套制品。
 
 ## 当前受支持的配置
