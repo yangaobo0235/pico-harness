@@ -1,90 +1,83 @@
-# Pico Benchmarks
+# Pico Benchmark 总览
 
-This directory holds **evaluation harnesses** that are deliberately decoupled
-from the runtime package. They are not imported by `pico/` and are
-excluded from the wheel build — keep it that way.
+本目录存放与 Runtime 包刻意解耦的**评测 harness**。`pico/` 不会导入它们，
+它们也不参与 wheel 构建——请保持这一状态。
 
-The Markdown task cards under `pinchbench/tasks/` are executable benchmark
-fixtures, not Pico product documentation. Some intentionally probe capabilities
-removed from Pico, including image generation or remote Skill discovery. A
-task card's presence does not mean the current Runtime supports that Tool.
+`pinchbench/tasks/` 下的 Markdown task 卡片是可执行的评测 fixture，不是 Pico
+产品文档。其中一些 task 故意探测 Pico 已经移除的能力，包括图片生成和远程 Skill
+发现。一张 task 卡片的存在，不能证明当前 Runtime 支持该 Tool。
 
-Use this area for reproducible evaluation work: capability suites, agent
-comparisons, and context stress tests that should not ship as part of the
-end-user CLI package.
+请把本区域用于可复现的评测工作：能力套件、Agent 对比，以及不应随终端用户 CLI
+包一起发布的 Context 压力测试。
 
 ## PicoBench
 
-PicoBench Ship-1 is the checkout-only Agent application evaluation harness
-under `benchmarks/picobench/`. Its contract is documented under
-[public evaluation notes](../docs/evaluation/README.md). It evaluates the existing
-Runtime through frozen, single-axis paired tasks and parent-owned deterministic
-Verifiers.
+`benchmarks/picobench/` 下的 PicoBench Ship-1 是只在仓库 checkout 中可用的 Agent
+应用评测 harness。它的契约记录在[公开评测说明](../docs/evaluation/README.md)中，
+通过冻结的单轴配对 task 与由父进程持有的确定性 verifier 来评测现有 Runtime。
 
-The implementation does not create a result claim by itself. Generated
-PicoBench evidence remains outside Git. Ship Completeness and Measurement
-Validity govern the campaign, while each capability separately applies its
-Positive Claim Eligibility rules. PinchBench, EvalEngine, Evolver evidence,
-PicoBench, and V-R0 remain distinct scopes.
+实现本身不会产出结果主张。生成的 PicoBench 证据始终留在 Git 之外。发布完整性
+（Ship Completeness）与测量有效性（Measurement Validity）约束整个 campaign，而
+每项能力各自适用自己的正向结论资格（Positive Claim Eligibility）规则。
+PinchBench、EvalEngine、Evolver 证据、PicoBench 与 V-R0 仍是互相独立的范围。
 
-The final-history Ship-1 campaign completed all 216 planned E2E Trials and 260
-Retrieval Cases, but one Context Pair lacked complete usage evidence and made
-the aggregate measurement invalid. Tool disclosure also regressed task pass
-count, so the retained main-campaign material exports no positive CV metric.
-See [PicoBench](picobench/README.md) for the published experiment boundary.
+最终留档的 Ship-1 campaign 完成了全部 216 个计划内 E2E Trial 和 260 个
+Retrieval Case，但有一个 Context Pair 缺少完整的用量证据，使整体测量无效。
+Tool 披露方式同时让 task 通过数出现回退，因此保留的主 campaign 材料不导出任何
+正向 CV 指标。已公开的实验边界见 [PicoBench](picobench/README.md)。
 
-## Layout
+## 目录结构
 
 ```
 benchmarks/
 ├── appworld/           AppWorld agent benchmark + evolver plugin
-│   ├── agent_cli.py       One-task subject agent (drives AgentLoop)
-│   ├── batch.py           Batch scorer: N tasks x K trials, resumable
+│   ├── agent_cli.py       单 task subject agent（驱动 AgentLoop）
+│   ├── batch.py           批量打分器：N tasks x K trials，可续跑
 │   └── evolve/            pico.evolver BenchBundle plugin (entry.py)
-│                          + designer/diagnosis/sandbox/precheck glue
+│                          外加 designer/diagnosis/sandbox/precheck 胶水代码
 │
-├── evolver/            Deterministic Evolution Run subject
-│   ├── small_real.yaml     One-round run spec (+ --smoke overlay)
-│   └── subject_template/   Disposable subject: a defective agent_cli.py plus
-│                           its own bench plugin; materialized to subject/
-│                           (gitignored) by scripts/setup_small_real_subject.py
+├── evolver/            确定性 Evolution Run 的 subject
+│   ├── small_real.yaml     单轮 run spec（+ --smoke overlay）
+│   └── subject_template/   一次性的 subject：一份有缺陷的 agent_cli.py 加上
+│                           它自己的 bench plugin；由
+│                           scripts/setup_small_real_subject.py 实例化到
+│                           subject/（gitignored）
 │
-├── pinchbench/         Context / AgentLoop capability benchmark
-│   ├── tasks/             23 task_*.md cards (YAML frontmatter + sections)
-│   ├── direct/            Drives AgentLoop.run_turn() per task
-│   ├── bot_runner/        Drives full gateway + channel path per task
-│   ├── assets/            Task-specific workspace files
-│   └── results/           Run outputs (gitignored)
+├── pinchbench/         Context / AgentLoop 能力 benchmark
+│   ├── tasks/             23 张 task_*.md 卡片（YAML frontmatter + 分节）
+│   ├── direct/            逐 task 驱动 AgentLoop.run_turn()
+│   ├── bot_runner/        逐 task 驱动完整 gateway + channel 链路
+│   ├── assets/            task 专属的 workspace 文件
+│   └── results/           运行输出（gitignored）
 │
-├── picobench/          Agent application evaluation harness
-│   ├── packs/             Runtime, Context, Memory/Skill, and Tool/MCP tracks
-│   ├── suites/            Frozen experiment plans and claim rules
-│   └── README.md          Smoke, campaign, rebuild, and evidence boundaries
+├── picobench/          Agent 应用评测 harness
+│   ├── packs/             Runtime、Context、Memory/Skill 与 Tool/MCP 轨道
+│   ├── suites/            冻结的实验计划与 claim 规则
+│   └── README.md          smoke、campaign、重建与证据边界
 │
-├── clawbench/          ClawBench streaming benchmark adapter
-│   ├── stream.py          Drives AgentLoop.run_turn() across one session
-│   ├── run.sh             Shell wrapper
-│   └── README.md          Setup and run instructions
+├── clawbench/          ClawBench 流式 benchmark 适配器
+│   ├── stream.py          在同一个 session 内驱动 AgentLoop.run_turn()
+│   ├── run.sh             Shell 包装脚本
+│   └── README.md          配置与运行说明
 │
-├── skill_evals/        Query corpus for the retained SkillForge evaluation
-│   └── queries.jsonl      Used by scripts/skill_forge_retrieval_eval.py
+├── skill_evals/        保留的 SkillForge 评测所用查询语料
+│   └── queries.jsonl      由 scripts/skill_forge_retrieval_eval.py 使用
 │
-└── README.md           This file
+└── README.md           本文件
 ```
 
-Run `uv run python scripts/skill_forge_retrieval_eval.py` for the
-self-contained, offline SkillForge retrieval evaluation. The obsolete
-SQLite mass-library runner was removed with the retired remote skill
-retrieval architecture.
+运行 `uv run python scripts/skill_forge_retrieval_eval.py` 可执行自包含、离线的
+SkillForge 检索评测。随着远程 skill 检索架构退役，已废弃的 SQLite 大规模库
+runner 一并移除。
 
-## Running
+## 运行
 
-### Model and tool configuration
+### 模型与工具配置
 
-The benchmark runners can use the normal `~/.pico/config.json`, or the
-environment overrides below. Never commit real keys.
+Benchmark runner 可以使用常规的 `~/.pico/config.json`，也可以使用下面的环境变量
+覆盖。绝不要把真实密钥提交进仓库。
 
-For an OpenAI-compatible gateway using OpenRouter-style environment names:
+使用 OpenRouter 风格的环境变量名接入 OpenAI 兼容网关：
 
 ```bash
 export OPENROUTER_API_KEY="..."
@@ -93,14 +86,14 @@ export PICO_BENCH_PROVIDER="custom"
 export PICO_BENCH_MODEL="deepseek-v4-flash"
 ```
 
-Optional web tools:
+可选的 web 工具：
 
 ```bash
 export SERPER_API_KEY="..."
 export JINA_API_KEY="..."
 ```
 
-Equivalent `~/.pico/config.json`:
+等价的 `~/.pico/config.json`：
 
 ```json
 {
@@ -129,7 +122,7 @@ Equivalent `~/.pico/config.json`:
 }
 ```
 
-PinchBench (Direct mode):
+PinchBench（Direct 模式）：
 ```bash
 ./benchmarks/pinchbench/direct/run.sh \
     --model deepseek-v4-flash \
@@ -139,12 +132,12 @@ PinchBench (Direct mode):
     --suite task_00_sanity
 ```
 
-PinchBench (Bot mode):
+PinchBench（Bot 模式）：
 ```bash
 ./benchmarks/pinchbench/bot_runner/run.sh --suite automated-only
 ```
 
-ClawBench (first 80 tasks, one streaming session):
+ClawBench（前 80 个 task，单个流式 session）：
 ```bash
 git clone https://github.com/claw-bench/claw-bench ../claw-bench
 export CLAW_BENCH_ROOT="$PWD/../claw-bench"
@@ -156,7 +149,7 @@ export CLAW_BENCH_ROOT="$PWD/../claw-bench"
     --max-iterations 40
 ```
 
-ClawBench with Curator context engine:
+ClawBench 搭配 Curator Context 引擎：
 ```bash
 ./benchmarks/clawbench/run.sh \
     --clawbench-root "$CLAW_BENCH_ROOT" \
@@ -167,20 +160,18 @@ ClawBench with Curator context engine:
     --max-iterations 40
 ```
 
-## Relation to runtime
+## 与 Runtime 的关系
 
-The runtime (`pico/`) **never statically imports from `benchmarks/`** — this
-is the "independent eval track" principle. The reverse is allowed and
-expected: benchmarks import `pico.agent`, `pico.providers`, etc. directly.
+Runtime（`pico/`）**从不静态导入 `benchmarks/` 中的任何内容**——这就是“独立评测
+轨道”原则。反向依赖是允许且符合预期的：benchmark 可以直接导入 `pico.agent`、
+`pico.providers` 等。
 
-One scoped exception: `pico.evolver` loads its bench *plugins* from here by
-registry name at launch (`benchmarks.appworld.evolve.entry:build`), inserting
-the subject repo root on `sys.path` first. It is lazy, opt-in, and only works
-from a repo checkout — evolution needs the git repo as its subject anyway, so
-nothing in the installed wheel depends on this directory.
+一个受限的例外：`pico.evolver` 在启动时按注册名从这里加载它的 bench *plugin*
+（`benchmarks.appworld.evolve.entry:build`），并先把 subject 仓库根目录插入
+`sys.path`。它是惰性、需显式启用、且只在仓库 checkout 下可用的——演进本来就需要
+git 仓库作为 subject，因此安装后的 wheel 没有任何部分依赖本目录。
 
-AppWorld is the checkout example. The tracked small-real template materializes
-a disposable subject repository that owns its own registered benchmark plugin
-and immutable grader. References to EvoAgentBench or other benchmark lines in
-methodology/design notes remain planned or historical unless corresponding
-code exists.
+AppWorld 是仓库 checkout 场景的示例。纳入版本控制的 small-real 模板会实例化一个
+一次性的 subject 仓库，它自带已注册的 benchmark plugin 和不可变的 grader。
+方法学/设计说明中提到的 EvoAgentBench 或其他 benchmark 线路，在没有对应代码的
+情况下，只能视为计划中或历史内容。

@@ -1,120 +1,110 @@
-# DeepSeek TokenWise cost experiment
+# DeepSeek TokenWise cost 实验
 
-> **Status: rerun through current CallEfficiency on 2026-08-13.** The frozen
-> DeepSeek V4 Flash campaign completed 36 valid Comparison Blocks, 72 Trials,
-> and 504 real Provider calls. All Claim Gates passed.
+> **状态：2026-08-13 通过当前的 CallEfficiency 重跑。** 冻结的 DeepSeek V4
+> Flash campaign 完成了 36 个有效 Comparison Block、72 次 Trial 和 504 次真实
+> Provider 调用。所有 Claim Gate 均通过。
 
-This page keeps the historical TokenWise experiment name for continuity. The
-active Runtime subsystem is CallEfficiency, and the current campaign crossed
-the shared Runtime Assembly and retained one Call Record per physical attempt.
+本页保留历史的 TokenWise 实验名以维持连贯。当前生效的 Runtime 子系统是
+CallEfficiency，本轮 campaign 走的是共享的 Runtime Assembly，并为每次物理
+尝试保留一条 Call Record。
 
-## Question
+## 问题
 
-How much does DeepSeek's automatic disk context cache reduce the estimated API
-cost of a verified successful Pico Agent task when the request prefix remains
-stable?
+在请求前缀保持稳定时，DeepSeek 的自动磁盘 Context cache 能把一个已验证成功的
+Pico Agent 任务的估算 API cost 降低多少？
 
-DeepSeek ignores Anthropic `cache_control` markers. TokenWise therefore does
-not place explicit breakpoints for this Provider. It normalizes DeepSeek's
-`prompt_cache_hit_tokens` and `prompt_cache_miss_tokens`, rebuilds cost from
-the Provider's cache-hit, cache-miss, and output rates, and measures the value
-of prefix stability.
+DeepSeek 会忽略 Anthropic 的 `cache_control` marker。因此 TokenWise 不为该
+Provider 设置显式的 breakpoint。它把 DeepSeek 的 `prompt_cache_hit_tokens` 与
+`prompt_cache_miss_tokens` 归一化，用 Provider 的 cache-hit、cache-miss 与输出
+单价重建 cost，并度量前缀稳定性的价值。
 
-## Treatment axis
+## 处理轴
 
-Every Comparison Block executes the same task under two policies. DeepSeek's
-automatic cache remains enabled in both arms.
+每个 Comparison Block 都在两种策略下执行同一任务。两个 arm 中 DeepSeek 的
+自动 cache 始终保持开启。
 
-| Policy | Request behavior | Role |
+| 策略 | 请求行为 | 角色 |
 | --- | --- | --- |
-| `prefix_disrupted` | Change the leading system and Tool Schema bytes before every Provider call | Negative control |
-| `prefix_stable` | Preserve Pico's ordinary request prefix | Treatment |
+| `prefix_disrupted` | 在每次 Provider 调用之前改动开头的 system 与 Tool Schema 字节 | 负向对照 |
+| `prefix_stable` | 保持 Pico 常规的请求前缀 | 处理组 |
 
-The disrupted arm is an experimental counterfactual, not an earlier product
-version and not a deployable configuration. Each Trial uses a separate
-DeepSeek `user_id` so one arm cannot warm another arm's KV cache.
+被扰动的 arm 是一种实验性的反事实构造，不是更早的产品版本，也不是可部署的
+配置。每次 Trial 使用独立的 DeepSeek `user_id`，因此一个 arm 无法为另一个
+arm 预热 KV cache。
 
-The Provider, exact model, non-thinking generation mode, Tool set, Context
-budget, workspace fixture, prompts, and retry limits remain fixed. Fallbacks
-are forbidden.
+Provider、精确模型、non-thinking 生成模式、Tool 集合、Context 预算、
+workspace fixture、prompts 与重试上限都保持固定。禁止 fallback。
 
-## Frozen workload matrix
+## 冻结 workload 矩阵
 
-The campaign has four workload classes, three cases per class, and three
-repetitions:
+本轮 campaign 包含四类 workload，每类三个 case，各重复三次：
 
-| Workload class | Observable pressure | Shape per Trial |
+| workload 类别 | 可观测的压力 | 每次 Trial 的形态 |
 | --- | --- | --- |
-| `stable_dialogue` | Repeated stable system instructions | Six short Turns, no Tools |
-| `long_history` | Growing conversation prefix | Six Turns after sixteen seeded history Turns |
-| `tool_accumulation` | Tool schemas and results accumulate across Turns | Six Turns, one verified Tool call per Turn |
-| `intra_turn_tool_chain` | Tool results extend the prefix within one Turn | One Turn with a verified three-step Tool chain |
+| `stable_dialogue` | 重复且稳定的 system 指令 | 六个短 Turn，不使用 Tool |
+| `long_history` | 不断增长的 conversation 前缀 | 在 16 个预置 history Turn 之后执行六个 Turn |
+| `tool_accumulation` | Tool schema 与结果跨 Turn 累积 | 六个 Turn，每个 Turn 一次经过验证的 Tool 调用 |
+| `intra_turn_tool_chain` | 单个 Turn 内由 Tool 结果扩展前缀 | 一个 Turn，包含一次经过验证的三步 Tool chain |
 
-This produces 36 Comparison Blocks and 72 Trials. A Trial is one policy
-executing one case once. The campaign made 504 real Provider calls.
+由此得到 36 个 Comparison Block 与 72 次 Trial。一次 Trial 指一个策略把某个
+case 执行一次。本轮 campaign 共发出 504 次真实 Provider 调用。
 
-## Metrics and gates
+## 指标与 Gate
 
-The primary metric is estimated cost per verified success:
+主要指标是每次已验证成功的估算 cost：
 
 ```text
 cost_per_verified_success = sum(all valid Trial cost) / verified successes
 ```
 
-Failed tasks remain in the numerator. The conservative cache hit rate is:
+失败的任务仍留在分子中。保守口径的 cache 命中率是：
 
 ```text
 cache_read / (cache_miss + cache_read)
 ```
 
-The report exports CV metrics only when all planned blocks are valid, every
-usage record satisfies `prompt = cache_hit + cache_miss`, the exact requested
-model served every call, all four workload classes are present, treatment task
-success does not regress, and stable prefixes improve both cache hit rate and
-cost per verified success.
+只有在以下条件全部满足时，报告才导出 CV 指标：所有规划的 block 均有效；每条
+usage 记录都满足 `prompt = cache_hit + cache_miss`；每一次调用都由所请求的
+精确模型服务；四类 workload 全部在场；处理组的任务成功度没有回退；稳定前缀
+同时改善 cache 命中率与 cost per verified success。
 
-## Result
+## 结果
 
-The campaign was pinned to `deepseek/deepseek-v4-flash`. The frozen pricing
-snapshot was USD 0.14 per million cache-miss input tokens, USD 0.0028 per
-million cache-hit input tokens, and USD 0.28 per million output tokens.
+本轮 campaign 固定使用 `deepseek/deepseek-v4-flash`。冻结的价格快照为：
+cache-miss 输入 0.14 美元每百万 Token、cache-hit 输入 0.0028 美元每百万
+Token、输出 0.28 美元每百万 Token。
 
-| Metric | Prefix disrupted | Prefix stable |
+| 指标 | 前缀被扰动 | 前缀稳定 |
 | --- | ---: | ---: |
-| Valid Trials | 36 | 36 |
-| Verified task pass rate | 100% | 100% |
-| Conservative cache hit rate | 0% | 74.0478% |
-| Estimated cost per verified success | $0.008356 | $0.002311 |
+| 有效 Trial 数 | 36 | 36 |
+| 已验证任务通过率 | 100% | 100% |
+| 保守口径 cache 命中率 | 0% | 74.0478% |
+| 每次已验证成功的估算 cost | $0.008356 | $0.002311 |
 
-Stable prefixes reduced estimated cost per verified success by **72.3413%**
-in the aggregate. The task-clustered paired estimate was **72.0750%**, with a
-95 percent interval of **68.8471% to 75.0961%**. All 36 Comparison Blocks were
-valid, no fallback or model drift occurred, and the full campaign used an
-estimated USD 0.384031.
+在总体上，稳定前缀把 cost per verified success 降低了 **72.3413%**。按任务
+聚类的成对估计为 **72.0750%**，95% 区间为 **68.8471% 至 75.0961%**。36 个
+Comparison Block 全部有效，没有出现 fallback 或 model drift，整轮 campaign
+的估算花费为 0.384031 美元。
 
-Per-workload treatment hit rates were 65.12% for stable dialogue, 75.72% for
-long history, 79.31% for Tool accumulation, and 65.47% for the intra-Turn Tool
-chain.
+处理组在各 workload 上的命中率分别是：stable dialogue 65.12%、long history
+75.72%、Tool accumulation 79.31%、intra-Turn Tool chain 65.47%。
 
-## Evidence boundary
+## 证据边界
 
-The result proves that Pico's stable request prefixes benefit from DeepSeek's
-automatic cache under the frozen workload and that TokenWise reconstructs
-DeepSeek cache usage and estimated cost. It does not prove that Pico created
-DeepSeek's cache, that every production workload will achieve a 75.19% hit
-rate, or that the estimate has been reconciled against a Provider invoice.
+该结果证明：在冻结 workload 之下，Pico 的稳定请求前缀能从 DeepSeek 的自动
+cache 中获益，并且 TokenWise 能重建 DeepSeek 的 cache 用量与估算 cost。它
+不能证明 Pico 创建了 DeepSeek 的 cache，不能证明每个生产 workload 都会达到
+75.19% 的命中率，也不能证明该估算已与 Provider 账单做过对账。
 
-The current report is retained outside Git under
-`.pico/evidence/call-efficiency-cost/1df7029-formal/`. Its SHA-256 is
-`b905ec833231236a53959cf78b05c89ca9b72b4066055aa5b6e3c327df3e4337`.
-Raw manifests, immutable inputs, and standalone report artifacts are intentionally
-not published in this repository.
+当前报告保留在 Git 之外的
+`.pico/evidence/call-efficiency-cost/1df7029-formal/`。其 SHA-256 是
+`b905ec833231236a53959cf78b05c89ca9b72b4066055aa5b6e3c327df3e4337`。
+原始 manifest、不可变输入与独立报告制品有意不在本仓库发布。
 
-## Reproduction
+## 复现
 
-The CallEfficiency replay path makes no Provider calls. It validates the
-historical report digest, recalculates every Trial from the embedded frozen
-price snapshot, and runs the original reducer again:
+CallEfficiency 的 replay 路径不发出任何 Provider 调用。它校验历史报告的
+digest，用内嵌的冻结价格快照重新计算每一次 Trial，并再次运行原有的 reducer：
 
 ```bash
 uv run python -m benchmarks.picobench.packs.tokenwise_cost.replay \
@@ -123,19 +113,17 @@ uv run python -m benchmarks.picobench.packs.tokenwise_cost.replay \
   --output .pico/evidence/call-efficiency-replay/report.json
 ```
 
-`--expected-source-digest` is the external lineage binding. Obtain it from a
-separately trusted manifest or frozen evidence record; copying a digest from the
-same report being checked does not establish provenance. The replay refuses to
-claim equivalence without that binding and refuses to overwrite its source
-artifact.
+`--expected-source-digest` 是外部的 lineage 绑定。它必须来自单独可信的
+manifest 或冻结的证据记录；从被校验的那份报告本身复制 digest 并不能确立来源。
+缺少该绑定时，replay 拒绝声称等价，并拒绝覆盖自己的来源制品。
 
-An `equivalent: true` result establishes artifact and reducer equivalence only.
-It is not a new live Runtime result.
+`equivalent: true` 的结果只建立制品层面与 reducer 层面的等价。它不是新的
+live Runtime 结果。
 
-The current paid runner crosses the shared Runtime Assembly and observes every
-physical Provider attempt through CallEfficiency. It retains raw Provider and
-CallEfficiency receipts, applies a task-clustered paired bootstrap interval,
-and rebuilds the result offline. Paid modes remain behind an explicit flag:
+当前的付费 runner 走共享的 Runtime Assembly，并通过 CallEfficiency 观察每一
+次物理 Provider 尝试。它保留原始的 Provider 与 CallEfficiency 回执，应用按
+任务聚类的成对 bootstrap 区间，并离线重建结果。付费模式仍然需要显式 flag
+才生效：
 
 ```bash
 uv run python -m benchmarks.picobench.tokenwise_cost_campaign \
@@ -153,15 +141,13 @@ uv run python -m benchmarks.picobench.tokenwise_cost_campaign \
   --output-root .pico/evidence/call-efficiency-cost-current
 ```
 
-The runner reads `DEEPSEEK_API_KEY`, then falls back to
-`providers.deepseek.apiKey` in Pico's config. It never writes credentials into
-artifacts. It stops before a new call at either 1,200 Provider calls or USD 2
-of observed estimated spend.
+runner 先读取 `DEEPSEEK_API_KEY`，随后回退到 Pico 配置中的
+`providers.deepseek.apiKey`。它绝不会把凭证写入制品。当观测到的估算花费达到
+2 美元、或 Provider 调用达到 1,200 次时，它会在发起新调用之前停止。
 
-The formal campaign remains 12 frozen tasks times three repetitions times two
-arms: 36 pairs and 72 Trials. A positive claim additionally requires every task
-to pass, complete Usage and cost data, exact-model execution without fallback,
-one persisted CallEfficiency record per physical attempt, healthy ledgers, and
-a paired cost-reduction confidence interval whose lower bound is above zero.
-The verifier writes raw outcomes, the rebuilt aggregate, claim eligibility,
-verifier status, and a SHA-256 inventory without making Provider calls.
+正式 campaign 仍是 12 个冻结任务乘以三次重复再乘以两个 arm：36 对、72 次
+Trial。正向 claim 还额外要求：每个任务都通过；Usage 与 cost 数据完整；由
+精确模型执行且无 fallback；每次物理尝试持久化一条 CallEfficiency 记录；
+ledger 健康；并且成对的 cost 降幅置信区间下界大于零。verifier 在不发起
+Provider 调用的前提下，写出原始结果、重建后的聚合值、claim 资格、verifier
+状态以及 SHA-256 清单。

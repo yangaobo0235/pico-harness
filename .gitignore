@@ -32,6 +32,18 @@ ui-tui/packages/hermes-ink/dist/
 .worktrees/
 logs/
 
+# IDE 与编辑器本地状态
+.idea/
+.vscode/
+
+# Pico 在本仓库内运行时产生的状态与数据，不属于发布树
+/TOOLS.md
+/memory/
+/agent_memory/
+/user_memory/
+/sessions/
+/telemetry/
+
 benchmarks/clawbench/results/
 benchmarks/pinchbench/benchmark.log
 benchmarks/pinchbench/results/

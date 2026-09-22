@@ -1,25 +1,25 @@
-# ClawBench Streaming Runner
+# ClawBench 流式 Runner
 
-This directory contains a Pico-only ClawBench runner. It executes tasks
-sequentially in one persistent Pico session:
+本目录包含一个只面向 Pico 的 ClawBench runner。它在同一个持久的 Pico session 中
+顺序执行 task：
 
-1. prepare task 1 workspace;
-2. submit a `TurnRequest` through `AgentLoop.run_turn()`;
-3. grade the workspace with ClawBench's verifier;
-4. repeat for task 2 without clearing the Pico session.
+1. 准备 task 1 的 workspace；
+2. 通过 `AgentLoop.run_turn()` 提交一个 `TurnRequest`；
+3. 用 ClawBench 的 verifier 对 workspace 打分；
+4. 不清空该 Pico session，对 task 2 重复同样的步骤。
 
-The ClawBench dataset is not vendored here. Clone it separately and point the
-runner at the checkout.
+ClawBench 数据集没有随本仓库内置。请单独克隆该仓库，并把 runner 指向那个
+checkout。
 
-## Setup
+## 准备
 
 ```bash
 git clone https://github.com/claw-bench/claw-bench ../claw-bench
 export CLAW_BENCH_ROOT="$PWD/../claw-bench"
 ```
 
-Install Pico normally, then configure a model. The benchmark runners use
-OpenRouter-style environment names for any OpenAI-compatible gateway:
+正常安装 Pico，然后配置模型。对任意 OpenAI 兼容网关，benchmark runner 都使用
+OpenRouter 风格的环境变量名：
 
 ```bash
 export OPENROUTER_API_KEY="..."
@@ -28,14 +28,14 @@ export PICO_BENCH_PROVIDER="custom"
 export PICO_BENCH_MODEL="deepseek-v4-flash"
 ```
 
-Optional web tools:
+可选的 web 工具：
 
 ```bash
 export SERPER_API_KEY="..."
 export JINA_API_KEY="..."
 ```
 
-You can also put the same values in `~/.pico/config.json`:
+也可以把同样的值写进 `~/.pico/config.json`：
 
 ```json
 {
@@ -64,11 +64,11 @@ You can also put the same values in `~/.pico/config.json`:
 }
 ```
 
-Do not commit real keys.
+不要提交真实密钥。
 
-## Run
+## 运行
 
-Smoke test one task:
+对单个 task 做 smoke test：
 
 ```bash
 ./benchmarks/clawbench/run.sh \
@@ -77,7 +77,7 @@ Smoke test one task:
   --session-id clawbench-smoke
 ```
 
-Run the first 80 tasks as one streaming session:
+把前 80 个 task 作为一个流式 session 运行：
 
 ```bash
 ./benchmarks/clawbench/run.sh \
@@ -87,7 +87,7 @@ Run the first 80 tasks as one streaming session:
   --max-iterations 40
 ```
 
-Run with Curator enabled:
+启用 Curator 运行：
 
 ```bash
 ./benchmarks/clawbench/run.sh \
@@ -99,7 +99,7 @@ Run with Curator enabled:
   --max-iterations 40
 ```
 
-Useful filters:
+常用的过滤方式：
 
 ```bash
 ./benchmarks/clawbench/run.sh --domain data-analysis --limit 5
@@ -107,17 +107,16 @@ Useful filters:
 ./benchmarks/clawbench/run.sh --task cal-001,code-001,xdom-014
 ```
 
-## Outputs
+## 输出
 
-By default outputs are written under `benchmarks/clawbench/results/`:
+默认情况下，输出写入 `benchmarks/clawbench/results/`：
 
-- `run_<timestamp>/workspaces/` — per-task workspaces;
-- `run_<timestamp>/transcripts/` — prompts, final responses, errors;
-- `run_<timestamp>/partial_results.json` — updated after each task;
-- `pico_clawbench_stream_<timestamp>.json` - final summary;
-- `pico_clawbench_stream_<timestamp>.tokens.csv` - per-task token records;
-- `results.md` — live markdown table.
+- `run_<timestamp>/workspaces/` — 每个 task 独立的 workspace；
+- `run_<timestamp>/transcripts/` — prompt、最终回复、错误；
+- `run_<timestamp>/partial_results.json` — 每个 task 结束后更新；
+- `pico_clawbench_stream_<timestamp>.json` - 最终汇总；
+- `pico_clawbench_stream_<timestamp>.tokens.csv` - 逐 task 的 Token 记录；
+- `results.md` — 实时更新的 markdown 表格。
 
-Token columns use provider-reported `response.usage`. `context_used` is the
-final model call's prompt plus completion tokens for the task; it is not the
-sum of all task tokens.
+Token 各列使用 Provider 上报的 `response.usage`。`context_used` 是该 task 最后一次
+模型调用的 prompt 与 completion Token 之和；它不是该 task 全部 Token 的累加值。
