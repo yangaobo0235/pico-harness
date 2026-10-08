@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from pico.evolver.tree import git_ops
+from pico.extensions.evolution.tree import git_ops
 
 # 驱动可编辑的框架表面；触及的其他内容都会还原。
 WHITELIST_PREFIXES = (
@@ -127,7 +127,7 @@ class Sandbox:
             )
         p = self.root / rel
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(content)
+        p.write_text(content, encoding="utf-8", newline="\n")
         return f"[wrote {rel} ({len(content)} chars)]"
 
     def scope_restore(self) -> list[str]:

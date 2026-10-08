@@ -26,12 +26,12 @@ from pathlib import Path
 
 import pytest
 
-from pico.spine import StreamDelta, TurnOutcome, Usage
-from pico.tui_rpc.dispatcher import Dispatcher
-from pico.tui_rpc.methods.turn import clear_active, register_turn_methods
-from pico.tui_rpc.server import RpcServer
-from pico.tui_rpc.spine import build_tui
-from pico.tui_rpc.subscriptions import SubscriptionEmitter
+from pico.interfaces.rpc.dispatcher import Dispatcher
+from pico.interfaces.rpc.handlers.turn import clear_active, register_turn_methods
+from pico.interfaces.rpc.server import RpcServer
+from pico.interfaces.rpc.spine import build_tui
+from pico.interfaces.rpc.subscriptions import SubscriptionEmitter
+from pico.runtime.scheduling import StreamDelta, TurnOutcome, Usage
 
 SESSION_KEY = "tui:default"
 
@@ -64,16 +64,18 @@ async def _wire_paired_socket() -> tuple[socket.socket, socket.socket, Path]:
     tmp = Path(tempfile.mkdtemp(prefix="eve-test-cancel-"))
     spath = tmp / "sock"
 
-    server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    server_sock.bind(str(spath))
+    family = socket.AF_UNIX if hasattr(socket, "AF_UNIX") else socket.AF_INET
+    address = str(spath) if family == getattr(socket, "AF_UNIX", None) else ("127.0.0.1", 0)
+    server_sock = socket.socket(family, socket.SOCK_STREAM)
+    server_sock.bind(address)
     server_sock.listen(1)
     server_sock.setblocking(False)
 
-    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client = socket.socket(family, socket.SOCK_STREAM)
     client.setblocking(False)
 
     loop = asyncio.get_running_loop()
-    await loop.sock_connect(client, str(spath))
+    await loop.sock_connect(client, server_sock.getsockname())
     conn, _ = await loop.sock_accept(server_sock)
     conn.setblocking(False)
 
@@ -115,7 +117,7 @@ async def _drain_events(client: socket.socket, *, duration: float = 0.6) -> list
 
 @pytest.fixture(autouse=True)
 def _clear_active_turns():
-    from pico.tui_rpc.methods import turn as _turn_mod
+    from pico.interfaces.rpc.handlers import turn as _turn_mod
 
     _turn_mod._active_turns.clear()
     _turn_mod._active_request_keys.clear()
@@ -139,11 +141,12 @@ async def test_turn2_streams_after_turn1_cancel_over_real_rpc() -> None:
     serve_task = None
     teardown = None
     try:
-        req_fd = os.dup(conn.fileno())
-        notif_fd = os.dup(conn.fileno())
+        if os.name != "nt":
+            req_fd = os.dup(conn.fileno())
+            notif_fd = os.dup(conn.fileno())
 
         disp = Dispatcher()
-        server = RpcServer(req_fd, notif_fd, disp)
+        server = RpcServer(dispatcher=disp, sock=conn.dup()) if os.name == "nt" else RpcServer(req_fd, notif_fd, disp)
         emitter = SubscriptionEmitter(send_frame=server.send_frame)
         scheduler, _hub, turn_ids, submission_ids, teardown = build_tui(
             FakeStreamingAgent(),

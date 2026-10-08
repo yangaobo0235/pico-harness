@@ -17,13 +17,13 @@ from pathlib import Path
 from typing import Any
 
 from benchmarks.picobench.canonical import canonical_bytes, canonical_digest
-from pico.agent.tools.base import Tool
+from pico.capabilities.tools.contracts import Tool
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
 from pico.config.paths import RuntimePaths
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-from pico.spine import ChatType, Origin, Source, Text, TurnRequest
-from pico.tracing import spans as tracing_spans
+from pico.integrations.llm.contracts import LLMProvider, LLMResponse, ToolCallRequest
+from pico.observability.tracing import spans as tracing_spans
+from pico.runtime.scheduling import ChatType, Origin, Source, Text, TurnRequest
 
 MANIFEST_SCHEMA = "pico.picobench.tracing-overhead.manifest.v1"
 BLOCK_SCHEMA = "pico.picobench.tracing-overhead.block.v1"
@@ -399,7 +399,7 @@ async def _run_arm(
 
 
 def _assemble_runtime(root: Path, provider: _TracingProvider):
-    from pico.cli._runtime_assembly import assemble_runtime
+    from pico.bootstrap.container import assemble_runtime
 
     config = Config()
     config.agents.defaults.workspace = str(root)

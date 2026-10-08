@@ -97,11 +97,11 @@ class PicoSession:
         curator_model: str | None,
         restrict_to_workspace: bool,
     ) -> None:
-        from pico.agent.loop import AgentLoop
-        from pico.cli.commands import _make_provider
         from pico.config.loader import load_config, set_config_path
-        from pico.config.pico import ContextConfig
-        from pico.session.manager import SessionManager
+        from pico.config.models.features import ContextConfig
+        from pico.interfaces.cli.app import _make_provider
+        from pico.runtime.agent import AgentLoop
+        from pico.runtime.sessions.service import SessionManager
 
         workspace.mkdir(parents=True, exist_ok=True)
         if config_path is not None:
@@ -162,7 +162,7 @@ class PicoSession:
     async def run(self, message: str, *, task_id: str) -> tuple[str, dict[str, Any]]:
         before = dict(self.previous_totals)
         before_calls = self.previous_call_count
-        from pico.spine import ChatType, Origin, Source, Text, TurnRequest
+        from pico.runtime.scheduling import ChatType, Origin, Source, Text, TurnRequest
 
         _parts: list[str] = []
 

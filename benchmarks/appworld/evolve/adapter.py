@@ -42,18 +42,15 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from pico.evolver.analysis.stability_bucket import (
-    TaskStability,
-    _bucket_for,
-)
-from pico.evolver.orchestrator.scoring import (
+from pico.extensions.evolution.analysis.stability_bucket import TaskStability, _bucket_for
+from pico.extensions.evolution.orchestrator.scoring import (
     EvalBackend,
     TaskEval,
     prefer_rerun_measurement,
     with_infra_rerun,
 )
-from pico.evolver.scheduler.anchor_selection import simple_anchor
-from pico.evolver.tree.node import HarnessNode
+from pico.extensions.evolution.scheduler.anchor_selection import simple_anchor
+from pico.extensions.evolution.tree.node import HarnessNode
 
 ActivationOf = Callable[[HarnessNode], Any]
 

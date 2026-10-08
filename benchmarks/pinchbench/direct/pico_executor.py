@@ -84,7 +84,7 @@ class _StandardModelRouter:
     """
 
     def __init__(self, api_key: str, profile: str, fallback_model: str):
-        from pico.routing.router import ModelRouter
+        from pico.integrations.llm.routing.router import ModelRouter
 
         self._inner = ModelRouter(api_key=api_key, profile=profile, fallback_model=fallback_model)
         self._api_key = api_key
@@ -300,9 +300,9 @@ def _session_to_openclaw_transcript(
 
 def _make_benchmark_provider(model: str, api_key: str, api_base: str, provider_name: str):
     """Create the benchmark LLM provider."""
-    from pico.providers.base import GenerationSettings
-    from pico.providers.custom_provider import CustomProvider
-    from pico.providers.litellm_provider import LiteLLMProvider
+    from pico.integrations.llm.contracts import GenerationSettings
+    from pico.integrations.llm.providers.custom_provider import CustomProvider
+    from pico.integrations.llm.providers.litellm_provider import LiteLLMProvider
 
     if provider_name == "custom":
         provider = CustomProvider(
@@ -362,7 +362,7 @@ def _estimate_cost_usd(model: str, prompt_tokens: int, completion_tokens: int) -
 async def _run_turn_text(agent, message: str, *, session_key: str, chat_id: str) -> str:
     """Run one USER turn through the spine ``run_turn`` and return the reply text
     (non-streaming → the reply arrives as Text events, which we accumulate)."""
-    from pico.spine import ChatType, Origin, Source, Text, TurnRequest
+    from pico.runtime.scheduling import ChatType, Origin, Source, Text, TurnRequest
 
     parts: list[str] = []
 
@@ -408,9 +408,9 @@ async def execute_task(
         task_id, status, transcript, workspace, execution_time, timed_out,
         usage, cost_usd, models_used
     """
-    from pico.agent.loop import AgentLoop
-    from pico.config.schema import ExecToolConfig
-    from pico.session.manager import SessionManager
+    from pico.config.models.runtime import ExecToolConfig
+    from pico.runtime.agent import AgentLoop
+    from pico.runtime.sessions.service import SessionManager
 
     # 准备工作区。
     task_workspace = prepare_workspace(task, workspace, assets_dir)
@@ -434,7 +434,7 @@ async def execute_task(
     # 加载 skill_forge 配置，使基准运行遵守 injection_mode、inject_max、
     # mass_library_db 等设置。否则 AgentLoop 收到 ``skill_forge_config=None``，
     # SkillService 会忽略用户配置并回退到数据类默认值，如 injection_mode="summary"。
-    from pico.config.pico import load_pico_config
+    from pico.config.models.features import load_pico_config
 
     _ec_cfg = load_pico_config()
     skill_forge_cfg = getattr(_ec_cfg, "skill_forge", None)

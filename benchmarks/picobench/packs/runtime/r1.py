@@ -5,19 +5,14 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from pico.agent.spine_runner import AgentTurnRunner
-from pico.agent.tools.base import Tool, ToolResult
-from pico.cli._runtime_assembly import assemble_runtime
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import (
-    ErrorClassification,
-    LLMProvider,
-    LLMResponse,
-    ToolCallRequest,
-)
-from pico.session.manager import SessionManager
-from pico.spine import (
+from pico.bootstrap.container import assemble_runtime
+from pico.capabilities.tools.contracts import Tool, ToolResult
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
+from pico.integrations.llm.contracts import ErrorClassification, LLMProvider, LLMResponse, ToolCallRequest
+from pico.runtime.agent.turn_adapter import AgentTurnRunner
+from pico.runtime.delivery.hub import Capabilities, DeliveryHub, make_hub_sink
+from pico.runtime.scheduling import (
     ChatType,
     Origin,
     OriginPools,
@@ -31,11 +26,7 @@ from pico.spine import (
     TurnRequest,
     TurnStarted,
 )
-from pico.spine.delivery import (
-    Capabilities,
-    DeliveryHub,
-    make_hub_sink,
-)
+from pico.runtime.sessions.service import SessionManager
 
 from .models import R1RuntimeResult
 

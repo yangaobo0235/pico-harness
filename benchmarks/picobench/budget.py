@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import contextvars
-import fcntl
 import json
 import math
 import os
@@ -13,15 +12,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterator
 
+import portalocker
 import tiktoken
 
-from pico.providers.base import (
+from pico.integrations.llm.contracts import (
     ErrorClassification,
     GenerationSettings,
     LLMProvider,
     LLMResponse,
     StreamDelta,
 )
+from pico.shared.atomic_io import sync_directory
 
 from .canonical import canonical_digest, to_primitive
 
@@ -379,14 +380,14 @@ class ProviderBudgetLedger:
     @contextlib.contextmanager
     def _locked(self):
         with self.path.open("a+", encoding="utf-8") as handle:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            portalocker.lock(handle, portalocker.LOCK_EX)
             try:
                 events = _read_events(handle)
                 self._validate_prefix(events)
                 self._validate_or_bootstrap_high_water(events)
                 yield handle
             finally:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                portalocker.unlock(handle)
 
     def _append_event(
         self,
@@ -503,14 +504,7 @@ class ProviderBudgetLedger:
             os.fsync(handle.fileno())
         try:
             os.replace(temp_path, self.high_water_path)
-            directory_fd = os.open(
-                self.high_water_path.parent,
-                os.O_RDONLY,
-            )
-            try:
-                os.fsync(directory_fd)
-            finally:
-                os.close(directory_fd)
+            sync_directory(self.high_water_path.parent)
         finally:
             temp_path.unlink(missing_ok=True)
 
@@ -557,7 +551,7 @@ class BudgetGuardedProvider(LLMProvider):
         )
         if callable(configure_transport_retries):
             configure_transport_retries(0)
-        elif delegate.__class__.__module__.startswith("pico.providers."):
+        elif delegate.__class__.__module__.startswith("pico.integrations.llm.providers."):
             raise ProviderBudgetError(
                 "Provider does not expose transport retry control",
             )

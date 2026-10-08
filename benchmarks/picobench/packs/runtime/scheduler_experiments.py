@@ -13,16 +13,7 @@ from typing import Any
 
 from loguru import logger
 
-from pico.spine import (
-    ChatType,
-    Origin,
-    OriginPools,
-    Scheduler,
-    Source,
-    TurnOutcome,
-    TurnRequest,
-    Usage,
-)
+from pico.runtime.scheduling import ChatType, Origin, OriginPools, Scheduler, Source, TurnOutcome, TurnRequest, Usage
 
 from ...artifacts import ArtifactStore
 from ...canonical import canonical_digest, to_primitive
@@ -696,7 +687,7 @@ async def _main() -> int:
         repetitions=args.repetitions,
         fate_repetitions=args.fate_repetitions,
     )
-    logger.disable("pico.spine.scheduler")
+    logger.disable("pico.runtime.scheduling.scheduler")
     try:
         evidence, path = await run_and_write_scheduler_experiments(
             config,
@@ -704,7 +695,7 @@ async def _main() -> int:
             output_root=args.output_root,
         )
     finally:
-        logger.enable("pico.spine.scheduler")
+        logger.enable("pico.runtime.scheduling.scheduler")
     metrics = evidence["resume_metrics"]
     print(f"evidence: {path}")
     print(f"claim_eligible: {str(evidence['claim_eligible']).lower()}")

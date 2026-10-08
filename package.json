@@ -4,7 +4,11 @@
   "description": "Repository-level tooling for Pico.",
   "license": "Apache-2.0",
   "scripts": {
-    "commitlint": "commitlint --config commitlint.config.cjs"
+    "commitlint": "commitlint --config commitlint.config.cjs",
+    "build:tui": "npm --prefix apps/tui run build",
+    "test:tui": "npm --prefix apps/tui test",
+    "lint:tui": "npm --prefix apps/tui run lint",
+    "typecheck:tui": "npm --prefix apps/tui run type-check"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0"

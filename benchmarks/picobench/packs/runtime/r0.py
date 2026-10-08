@@ -5,7 +5,7 @@ import time
 from collections import Counter
 from dataclasses import dataclass, field
 
-from pico.spine import (
+from pico.runtime.scheduling import (
     BusyPolicy,
     ChatType,
     Origin,
@@ -19,7 +19,7 @@ from pico.spine import (
     TurnStarted,
     Usage,
 )
-from pico.spine.scheduler import SchedulerDrainingError
+from pico.runtime.scheduling.scheduler import SchedulerDrainingError
 
 from .models import LatencySummary, R0RuntimeResult, RequestFate
 

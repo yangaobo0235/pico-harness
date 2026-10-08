@@ -4,30 +4,25 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from pico.agent.context import ContextBuilder
-from pico.context_engine.assembler import ContextAssembler
-from pico.context_engine.base import AssemblyContext, ContextEngine, Segment
-from pico.context_engine.factory import _build_router
-from pico.context_engine.history_trimmer import HistoryTrimmer
-from pico.context_engine.segments import (
+from pico.integrations.llm.contracts import LLMProvider
+from pico.runtime.context.assembler import ContextAssembler
+from pico.runtime.context.base import AssemblyContext, ContextEngine, Segment
+from pico.runtime.context.factory import _build_router
+from pico.runtime.context.history_trimmer import HistoryTrimmer
+from pico.runtime.context.instructions import ContextBuilder
+from pico.runtime.context.segments import (
     ActiveSkillsSegmentBuilder,
     BootstrapSegmentBuilder,
     IdentitySegmentBuilder,
     MemorySegmentBuilder,
     SkillsSegmentBuilder,
 )
-from pico.context_engine.segments.curator import CuratorSegmentBuilder
-from pico.providers.base import LLMProvider
+from pico.runtime.context.segments.curator import CuratorSegmentBuilder
 
 if TYPE_CHECKING:
-    from pico.config.pico import (
-        ContextConfig,
-        MemoryConfig,
-        SkillForgeConfig,
-        SkillForgeRouterConfig,
-    )
-    from pico.context_engine.factory import ContextEngineFactory
-    from pico.memory_engine.backend import MemoryBackend
+    from pico.capabilities.memory.contracts import MemoryBackend
+    from pico.config.models.features import ContextConfig, MemoryConfig, SkillForgeConfig, SkillForgeRouterConfig
+    from pico.runtime.context.factory import ContextEngineFactory
 
 CONTEXT_BENCHMARK_CURATOR_MAX_STEPS = 4
 
@@ -243,7 +238,7 @@ def _build_benchmark_context_engine(
     skill_forge_config: "SkillForgeConfig | None",
     history_manager: Any,
 ) -> ContextEngine:
-    from pico.config.pico import MemoryConfig, SkillForgeRouterConfig
+    from pico.config.models.features import MemoryConfig, SkillForgeRouterConfig
 
     resolved_memory = memory_config or MemoryConfig()
     resolved_router = skill_forge_router_config or SkillForgeRouterConfig()

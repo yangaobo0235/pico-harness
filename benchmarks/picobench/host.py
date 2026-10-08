@@ -3,17 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pico.agent.spine_runner import AgentTurnRunner
-from pico.spine.delivery import Capabilities, DeliveryHub
-from pico.spine.events import (
-    Deliverable,
-    TurnEnded,
-    TurnEvent,
-    TurnFailed,
-)
-from pico.spine.runner import TurnOutcome
-from pico.spine.scheduler import OriginPools, Scheduler
-from pico.spine.turn import TurnRequest
+from pico.contracts.events import Deliverable, TurnEnded, TurnEvent, TurnFailed
+from pico.contracts.turns import TurnRequest
+from pico.runtime.agent.turn_adapter import AgentTurnRunner
+from pico.runtime.delivery.hub import Capabilities, DeliveryHub
+from pico.runtime.scheduling.runner import TurnOutcome
+from pico.runtime.scheduling.scheduler import OriginPools, Scheduler
 
 from .records import DeliveryOutcome, TurnTerminalState
 
@@ -82,7 +77,7 @@ class RuntimeTrialHost:
         system_concurrency: int = 1,
         delivery_retries: int = 0,
     ) -> RuntimeTrialHost:
-        from pico.cli._runtime_assembly import assemble_runtime
+        from pico.bootstrap.container import assemble_runtime
 
         assembly = assemble_runtime(
             config,
@@ -109,7 +104,7 @@ class RuntimeTrialHost:
     async def _sink(self, event: TurnEvent) -> None:
         self._events.append(event)
         if not isinstance(event, (TurnEnded, TurnFailed)):
-            from pico.spine.events import TurnStarted
+            from pico.contracts.events import TurnStarted
 
             if not isinstance(event, TurnStarted):
                 await self.hub.dispatch(event)

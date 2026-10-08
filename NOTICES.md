@@ -1,56 +1,29 @@
-# Third-Party Notices
+# 第三方版权与许可证
 
-Pico is licensed under the Apache License 2.0. It incorporates code from the
-following MIT-licensed projects. Their copyright notices and license texts are
-retained in `LICENSES/`.
+Pico 使用 [Apache License 2.0](LICENSE)，包含以下 MIT 许可项目的代码。原始版权声明和完整许可证随发行包保存在 `LICENSES/`。
 
+## 来源与许可证
 
-## nanobot (base agent runtime)
-- Source: https://github.com/HKUDS/nanobot
-- Copyright (c) 2025 nanobot contributors
-- License: MIT — see `LICENSES/MIT-nanobot.txt`
-- Scope: forked at v0.1.5.post3 and modified throughout the corresponding
-  `pico/` Runtime packages, including agent, bus, channels, CLI, config, cron,
-  providers, sessions, skills, templates, and utilities.
+| 项目 | 来源 | 许可证 |
+| --- | --- | --- |
+| nanobot | [HKUDS/nanobot](https://github.com/HKUDS/nanobot) | [MIT-nanobot.txt](LICENSES/MIT-nanobot.txt) |
+| hermes-agent | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | [MIT-hermes-agent.txt](LICENSES/MIT-hermes-agent.txt) |
+| ink | [vadimdemedes/ink](https://github.com/vadimdemedes/ink) | [MIT-ink.txt](LICENSES/MIT-ink.txt) |
 
-## hermes-agent (TUI layer)
-- Source: https://github.com/NousResearch/hermes-agent
-- Copyright (c) 2025 Nous Research
-- License: MIT — see `LICENSES/MIT-hermes-agent.txt`
-- Vendored at commit: `dd0923bb89ed2dd56f82cb63656a1323f6f42e6f` (2026-05-12)
-- Scope: the imported TUI remains under `ui-tui/`, including the vendored
-  `@hermes/ink` fork. Pico modifications include product branding, Pico
-  environment variables, the JSON-RPC client and Runtime bridge, and
-  repository SPDX/Copyright headers.
+## nanobot
 
-## ink (vendored via `@hermes/ink`)
-- Upstream source: https://github.com/vadimdemedes/ink
-- Copyright (c) Vadym Demedes, Sindre Sorhus, and ink contributors
-- License: MIT — see `LICENSES/MIT-ink.txt`
-- Scope: hermes-agent ships its own fork of community ink at
-  `ui-tui/packages/hermes-ink/`. Pico inherits this
-  vendor verbatim (package name `@hermes/ink` preserved for attribution).
-  Triple attribution chain (ink contributors → Nous Research hermes-ink
-  → EverMind modifications) is encoded in the 5-line SPDX header of
-  every substantial file under `ui-tui/packages/hermes-ink/src/`.
-  The vendored package must keep its original package name and notices unless
-  a future replacement performs a fresh license and compatibility review.
+Copyright (c) 2025 nanobot contributors
 
-# External Runtime Tools (not vendored)
+引入来源为 v0.1.5.post3。相关代码位于 `src/pico`，覆盖 Agent、工具、渠道、CLI、配置、调度、Provider、会话、技能、模板和基础操作，包含 Pico 修改。
 
-The following tools are invoked by Pico via `subprocess` calls but are
-**not bundled or redistributed** as part of any Pico release artifact.
-Their attribution here is supply-chain hygiene, not a license requirement.
-Users install them separately through their respective package managers.
+## hermes-agent
 
-## tui-use (TUI autotest harness Tier 1 backend)
-- Source: https://github.com/onesuper/tui-use
-- Copyright (c) 2026 Wei Hong (onesuper)
-- License: MIT
-- Install: `npm install -g tui-use` (npm package `tui-use`)
-- Scope: invoked by `tests/tui/autotest/runner.py::Harness` for PTY-driven
-  TUI subprocess control. Selected as Tier 1 backend per Day 0 spike
-  (2026-05-20) — all 5 acceptance gates S1-S5 passed. Pico does NOT
-  vendor, redistribute, or modify `tui-use` source.
-- If a future change vendors or modifies `tui-use`, it must add the applicable
-  license text to `LICENSES/` and update this notice before release.
+Copyright (c) 2025 Nous Research
+
+引入来源为提交 `dd0923bb89ed2dd56f82cb63656a1323f6f42e6f`。相关代码位于 `apps/tui`，包括 `@hermes/ink` 分支。Pico 修改包括产品标识、环境变量、RPC 客户端和 Python 运行时桥接。
+
+## ink
+
+Copyright (c) Vadym Demedes, Sindre Sorhus, and ink contributors
+
+通过 `@hermes/ink` 分支引入，代码位于 `apps/tui/packages/hermes-ink`，保留原包名。源文件中的声明保留 ink contributors、Nous Research 和 EverMind modifications 的归属链。

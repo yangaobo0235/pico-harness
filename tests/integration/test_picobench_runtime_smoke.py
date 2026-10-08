@@ -5,11 +5,11 @@ from pathlib import Path
 import pytest
 
 from benchmarks.picobench.host import RecordingOutlet, RuntimeTrialHost
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import LLMResponse
-from pico.spine import ChatType, Origin, Source, TurnRequest
-from pico.spine.events import Text
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
+from pico.contracts.events import Text
+from pico.integrations.llm.contracts import LLMResponse
+from pico.runtime.scheduling import ChatType, Origin, Source, TurnRequest
 
 
 class _ScriptedProvider:

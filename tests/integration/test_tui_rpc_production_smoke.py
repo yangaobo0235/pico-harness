@@ -24,7 +24,7 @@ from __future__ import annotations
 import os
 import sys
 
-from pico.cli import tui_commands
+from pico.interfaces.cli.tui import launcher as tui_commands
 
 CHILD_SRC = r"""
 import json

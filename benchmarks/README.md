@@ -1,177 +1,77 @@
-# Pico Benchmark 总览
+# Benchmark
 
-本目录存放与 Runtime 包刻意解耦的**评测 harness**。`pico/` 不会导入它们，
-它们也不参与 wheel 构建——请保持这一状态。
+Pico 的仓库级评测工具，用固定任务、验证器和运行记录比较特定能力的效果、成本与运行特性。评测代码不进入产品 wheel，产品源码不直接导入本目录。
 
-`pinchbench/tasks/` 下的 Markdown task 卡片是可执行的评测 fixture，不是 Pico
-产品文档。其中一些 task 故意探测 Pico 已经移除的能力，包括图片生成和远程 Skill
-发现。一张 task 卡片的存在，不能证明当前 Runtime 支持该 Tool。
+## 评测范围
 
-请把本区域用于可复现的评测工作：能力套件、Agent 对比，以及不应随终端用户 CLI
-包一起发布的 Context 压力测试。
+| 目录 | 用途 |
+| --- | --- |
+| `picobench` | Runtime、Context、Memory/Skill、Tool/MCP 与用量实验 |
+| `appworld` | AppWorld 任务适配和候选改进实验 |
+| `pinchbench` | 直接执行与消息入口任务卡 |
+| `clawbench` | 持续会话与流式评测适配 |
+| `skill_retrieval` | 本地技能检索查询输入 |
+| `evolver` | 改进实验的被测项目模板 |
 
-## PicoBench
+任务卡是测试输入，包含不同能力的探测条件。运行某项任务前确认所需工具、依赖与配置是否齐全。
 
-`benchmarks/picobench/` 下的 PicoBench Ship-1 是只在仓库 checkout 中可用的 Agent
-应用评测 harness。它的契约记录在[公开评测说明](../docs/evaluation/README.md)中，
-通过冻结的单轴配对 task 与由父进程持有的确定性 verifier 来评测现有 Runtime。
+## 评测流程
 
-实现本身不会产出结果主张。生成的 PicoBench 证据始终留在 Git 之外。发布完整性
-（Ship Completeness）与测量有效性（Measurement Validity）约束整个 campaign，而
-每项能力各自适用自己的正向结论资格（Positive Claim Eligibility）规则。
-PinchBench、EvalEngine、Evolver 证据、PicoBench 与 V-R0 仍是互相独立的范围。
-
-最终留档的 Ship-1 campaign 完成了全部 216 个计划内 E2E Trial 和 260 个
-Retrieval Case，但有一个 Context Pair 缺少完整的用量证据，使整体测量无效。
-Tool 披露方式同时让 task 通过数出现回退，因此保留的主 campaign 材料不导出任何
-正向 CV 指标。已公开的实验边界见 [PicoBench](picobench/README.md)。
-
-## 目录结构
-
-```
-benchmarks/
-├── appworld/           AppWorld agent benchmark + evolver plugin
-│   ├── agent_cli.py       单 task subject agent（驱动 AgentLoop）
-│   ├── batch.py           批量打分器：N tasks x K trials，可续跑
-│   └── evolve/            pico.evolver BenchBundle plugin (entry.py)
-│                          外加 designer/diagnosis/sandbox/precheck 胶水代码
-│
-├── evolver/            确定性 Evolution Run 的 subject
-│   ├── small_real.yaml     单轮 run spec（+ --smoke overlay）
-│   └── subject_template/   一次性的 subject：一份有缺陷的 agent_cli.py 加上
-│                           它自己的 bench plugin；由
-│                           scripts/setup_small_real_subject.py 实例化到
-│                           subject/（gitignored）
-│
-├── pinchbench/         Context / AgentLoop 能力 benchmark
-│   ├── tasks/             23 张 task_*.md 卡片（YAML frontmatter + 分节）
-│   ├── direct/            逐 task 驱动 AgentLoop.run_turn()
-│   ├── bot_runner/        逐 task 驱动完整 gateway + channel 链路
-│   ├── assets/            task 专属的 workspace 文件
-│   └── results/           运行输出（gitignored）
-│
-├── picobench/          Agent 应用评测 harness
-│   ├── packs/             Runtime、Context、Memory/Skill 与 Tool/MCP 轨道
-│   ├── suites/            冻结的实验计划与 claim 规则
-│   └── README.md          smoke、campaign、重建与证据边界
-│
-├── clawbench/          ClawBench 流式 benchmark 适配器
-│   ├── stream.py          在同一个 session 内驱动 AgentLoop.run_turn()
-│   ├── run.sh             Shell 包装脚本
-│   └── README.md          配置与运行说明
-│
-├── skill_evals/        保留的 SkillForge 评测所用查询语料
-│   └── queries.jsonl      由 scripts/skill_forge_retrieval_eval.py 使用
-│
-└── README.md           本文件
+```text
+固定任务、模型、配置和预算
+  -> 执行计划并记录原始调用
+  -> 验证任务结果与记录完整性
+  -> 从记录重建指标
+  -> 比较重复运行结果
+  -> 说明结论适用的任务与环境
 ```
 
-运行 `uv run python scripts/skill_forge_retrieval_eval.py` 可执行自包含、离线的
-SkillForge 检索评测。随着远程 skill 检索架构退役，已废弃的 SQLite 大规模库
-runner 一并移除。
+修改任务、验证器或计划会改变比较条件，结果报告应说明版本与输入差异。
 
-## 运行
+## PicoBench 快速检查
 
-### 模型与工具配置
+在源码开发环境执行：
 
-Benchmark runner 可以使用常规的 `~/.pico/config.json`，也可以使用下面的环境变量
-覆盖。绝不要把真实密钥提交进仓库。
-
-使用 OpenRouter 风格的环境变量名接入 OpenAI 兼容网关：
-
-```bash
-export OPENROUTER_API_KEY="..."
-export OPENROUTER_API_BASE="https://openrouter.ai/api/v1"
-export PICO_BENCH_PROVIDER="custom"
-export PICO_BENCH_MODEL="deepseek-v4-flash"
+```powershell
+uv run python -m benchmarks.picobench --mode smoke --output-root .pico/evidence/picobench-smoke
+uv run python -m benchmarks.picobench --help
 ```
 
-可选的 web 工具：
+Smoke 不需要真实模型凭证，检查运行时装配与证据处理。
 
-```bash
-export SERPER_API_KEY="..."
-export JINA_API_KEY="..."
+| 内容 | 位置 |
+| --- | --- |
+| 计划 | `picobench/suites` |
+| 任务 | `picobench/tasks` |
+| 轨道与验证器 | `picobench/packs` |
+| 本地输出 | 所选 `--output-root` |
+
+完整 campaign、独立成本实验和各轨道按对应模块的 CLI 配置。
+
+## ClawBench 适配
+
+```powershell
+uv run python benchmarks/clawbench/stream.py --help
 ```
 
-等价的 `~/.pico/config.json`：
+需要外部任务目录与可用模型。`--session-id` 固定多轮会话，`--trace-dir` 指定本地记录。Shell 入口为 `benchmarks/clawbench/run.sh`。
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "provider": "custom",
-      "model": "deepseek-v4-flash",
-      "maxToolIterations": 40,
-      "contextWindowTokens": 65536
-    }
-  },
-  "providers": {
-    "custom": {
-      "apiKey": "YOUR_API_KEY",
-      "apiBase": "YOUR_OPENAI_COMPATIBLE_API_BASE"
-    }
-  },
-  "tools": {
-    "web": {
-      "jinaApiKey": "YOUR_JINA_KEY",
-      "search": {
-        "apiKey": "YOUR_SERPER_KEY"
-      }
-    }
-  }
-}
-```
+## 提示词缓存实验
 
-PinchBench（Direct 模式）：
-```bash
-./benchmarks/pinchbench/direct/run.sh \
-    --model deepseek-v4-flash \
-    --provider custom \
-    --api-base "$OPENROUTER_API_BASE" \
-    --api-key "$OPENROUTER_API_KEY" \
-    --suite task_00_sanity
-```
+| 实验 | 测试入口 |
+| --- | --- |
+| 缓存断点策略 | `tests/unit/observability/test_token_wise_cache_strategies.py` |
+| 对话与工具工作负载 | `tests/unit/observability/test_token_wise_workload_scenarios.py` |
 
-PinchBench（Bot 模式）：
-```bash
-./benchmarks/pinchbench/bot_runner/run.sh --suite automated-only
-```
+两个入口使用 `real_llm` 标记，输出写入 `.pico/evidence/prompt-cache`。真实模型实验需要凭证和预算，选择方式见[测试指南](../docs/development/testing.md)。
 
-ClawBench（前 80 个 task，单个流式 session）：
-```bash
-git clone https://github.com/claw-bench/claw-bench ../claw-bench
-export CLAW_BENCH_ROOT="$PWD/../claw-bench"
+## 结果与输出
 
-./benchmarks/clawbench/run.sh \
-    --clawbench-root "$CLAW_BENCH_ROOT" \
-    --limit 80 \
-    --session-id clawbench-stream-pico-80 \
-    --max-iterations 40
-```
+- 固定模型、Provider、配置、任务集合、预算和重复次数。
+- 先验证任务是否完整，再比较成本与时延。
+- 分别记录输入、输出、缓存写入和缓存读取 Token。
+- 保留任务成功、记录完整和测量有效的独立判断。
+- 结论说明适用环境，失败或遗漏调用不能作为费用下降的证据。
+- 原始记录、生成报告和凭证放在被忽略的 `.pico` 或仓库外。
 
-ClawBench 搭配 Curator Context 引擎：
-```bash
-./benchmarks/clawbench/run.sh \
-    --clawbench-root "$CLAW_BENCH_ROOT" \
-    --limit 80 \
-    --session-id clawbench-stream-pico-curator-80 \
-    --context-engine curator \
-    --curator-model deepseek-v4-flash \
-    --max-iterations 40
-```
-
-## 与 Runtime 的关系
-
-Runtime（`pico/`）**从不静态导入 `benchmarks/` 中的任何内容**——这就是“独立评测
-轨道”原则。反向依赖是允许且符合预期的：benchmark 可以直接导入 `pico.agent`、
-`pico.providers` 等。
-
-一个受限的例外：`pico.evolver` 在启动时按注册名从这里加载它的 bench *plugin*
-（`benchmarks.appworld.evolve.entry:build`），并先把 subject 仓库根目录插入
-`sys.path`。它是惰性、需显式启用、且只在仓库 checkout 下可用的——演进本来就需要
-git 仓库作为 subject，因此安装后的 wheel 没有任何部分依赖本目录。
-
-AppWorld 是仓库 checkout 场景的示例。纳入版本控制的 small-real 模板会实例化一个
-一次性的 subject 仓库，它自带已注册的 benchmark plugin 和不可变的 grader。
-方法学/设计说明中提到的 EvoAgentBench 或其他 benchmark 线路，在没有对应代码的
-情况下，只能视为计划中或历史内容。
+提交说明只保留可复现的使用方式，以及有明确测量条件的结论。

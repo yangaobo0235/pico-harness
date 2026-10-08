@@ -29,11 +29,7 @@ import threading
 import time
 import urllib.request
 
-from pico.evolver.activation.ledger import (
-    WORKSPACE_ENV,
-    beacon_workspace,
-    mark_beacons_enabled,
-)
+from pico.extensions.evolution.activation.ledger import WORKSPACE_ENV, beacon_workspace, mark_beacons_enabled
 
 # 开发机默认值，可按机器覆盖而无需修改代码。
 APPWORLD_ROOT = os.environ.get("APPWORLD_ROOT", os.path.expanduser("~/workspace/appworld-run"))

@@ -29,29 +29,19 @@ from benchmarks.picobench.records import (
     TurnTerminalState,
     VerificationState,
 )
-from pico.agent.tools.mcp import connect_mcp_servers
-from pico.agent.tools.registry import ToolRegistry
-from pico.agent.tools.tool_search import (
-    ToolCallTool,
-    ToolSearchController,
-    ToolSearchTool,
-)
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config, MCPServerConfig
-from pico.providers.base import (
+from pico.capabilities.tools.registry import ToolRegistry
+from pico.capabilities.tools.tool_search import ToolCallTool, ToolSearchController, ToolSearchTool
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config, MCPServerConfig
+from pico.integrations.llm.contracts import (
     ErrorClassification,
     GenerationSettings,
     LLMProvider,
     LLMResponse,
     ToolCallRequest,
 )
-from pico.spine import (
-    ChatType,
-    Origin,
-    Source,
-    ToolEvent,
-    TurnRequest,
-)
+from pico.integrations.mcp.client import connect_mcp_servers
+from pico.runtime.scheduling import ChatType, Origin, Source, ToolEvent, TurnRequest
 
 from .metrics import (
     TOOL_SCHEMA_ESTIMATOR_DIGEST,

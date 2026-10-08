@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from benchmarks.picobench.canonical import canonical_digest, to_primitive
-from pico.token_wise.base import TokenStrategy
+from pico.integrations.llm.strategies.base import TokenStrategy
 
 from .models import TokenWiseCostMeasurement
 from .reducer import (

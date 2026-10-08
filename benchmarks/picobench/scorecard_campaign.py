@@ -8,7 +8,7 @@ import subprocess
 from dataclasses import replace
 from pathlib import Path
 
-from pico.providers.base import LLMProvider
+from pico.integrations.llm.contracts import LLMProvider
 
 from .artifacts import ArtifactError
 from .budget import BudgetGuardedProvider

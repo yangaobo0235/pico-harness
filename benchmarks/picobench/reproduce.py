@@ -16,7 +16,7 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
-from pico.utils.portable_lock import LockTimeoutError, file_lock
+from pico.shared.locking import LockTimeoutError, file_lock
 
 from .canonical import canonical_digest
 from .scorecard import (

@@ -19,15 +19,10 @@ from benchmarks.picobench.usage import (
     UsageRecorder,
     usage_scope,
 )
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import (
-    ErrorClassification,
-    GenerationSettings,
-    LLMProvider,
-    LLMResponse,
-)
-from pico.spine import ChatType, Origin, Source, TurnRequest
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
+from pico.integrations.llm.contracts import ErrorClassification, GenerationSettings, LLMProvider, LLMResponse
+from pico.runtime.scheduling import ChatType, Origin, Source, TurnRequest
 
 from .models import ContextTask
 from .verifier import SealedContextTaskVerifier
@@ -204,7 +199,7 @@ class RuntimeContextTrialRunner:
         with (
             patch.dict("os.environ", environment, clear=False),
             patch(
-                "pico.cli._plugin_stack.build_plugin_tools",
+                "pico.bootstrap.plugins.build_plugin_tools",
                 return_value=[],
             ),
         ):

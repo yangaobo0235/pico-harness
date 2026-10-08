@@ -57,10 +57,10 @@ Your task:
 
 def _build_agent(args):
     from benchmarks.appworld.tool import AppWorldExecuteTool
-    from pico.agent.loop import AgentLoop
-    from pico.cli._helpers import load_runtime_config, make_provider
-    from pico.config.pico import load_pico_config
-    from pico.session.manager import SessionManager
+    from pico.config.models.features import load_pico_config
+    from pico.interfaces.cli.services import load_runtime_config, make_provider
+    from pico.runtime.agent import AgentLoop
+    from pico.runtime.sessions.service import SessionManager
 
     config = load_runtime_config(args.config, args.workspace)
     ec_config = load_pico_config()
@@ -117,7 +117,7 @@ async def _run(args) -> dict:
             # Pico 的 AgentLoop 由 Spine 驱动，没有 process_direct。通过 run_turn 运行一个
             # 无头轮次，emit/drain 为空操作，并用 text_sink 捕获最终回复。AppWorld 成功与否
             # 由环境预言机 /evaluate 判断，而非该文本；文本仅用于传输错误探测和结果记录。
-            from pico.spine import ChatType, Origin, Source, TurnRequest
+            from pico.runtime.scheduling import ChatType, Origin, Source, TurnRequest
 
             async def _emit(_event):
                 return None

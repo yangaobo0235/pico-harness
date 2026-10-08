@@ -34,8 +34,8 @@ import sys
 from pathlib import Path
 
 from benchmarks.appworld.evolve import adapter as aw_adapter
-from pico.evolver.launch.contract import BenchBundle, LaunchContext, validate_whitelist
-from pico.evolver.orchestrator.scoring import eval_with_infra_rerun
+from pico.extensions.evolution.launch.contract import BenchBundle, LaunchContext, validate_whitelist
+from pico.extensions.evolution.orchestrator.scoring import eval_with_infra_rerun
 
 _KNOWN_KEYS = {
     "config_path",
@@ -131,7 +131,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
         raise ValueError(
             f"bench_config.config_path not found: {config_path} — this is the "
             "subject agent's runtime config JSON (model endpoint etc.; start "
-            "from docs/examples/subject_runtime.json)"
+            "from examples/config/subject_runtime.json)"
         )
     # 现在就按运行时配置模式验证，不能等到试验阶段；否则空或损坏的目标配置会通过
     # `check`，直到冷启动深入 270 次试验后才失败。
@@ -146,7 +146,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
     except ValueError as exc:
         raise ValueError(
             f"bench_config.config_path {config_path} is not a valid Pico "
-            f"runtime config: {exc}\nStart from docs/examples/subject_runtime.json"
+            f"runtime config: {exc}\nStart from examples/config/subject_runtime.json"
         ) from exc
 
     if not bc.get("appworld_data_root"):
@@ -175,8 +175,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
     )
     if not appworld_bin.is_file():
         raise ValueError(
-            f"appworld binary not found at {appworld_bin} — create the AppWorld venv or set "
-            "bench_config.appworld_bin"
+            f"appworld binary not found at {appworld_bin} — create the AppWorld venv or set bench_config.appworld_bin"
         )
     if not os.access(appworld_bin, os.X_OK):
         raise ValueError(f"appworld binary is not executable: {appworld_bin}")
@@ -312,7 +311,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
             baseline_mode=bc.get("baseline_mode", "frozen"),
         )
 
-    from pico.evolver.tree.node import HarnessNode
+    from pico.extensions.evolution.tree.node import HarnessNode
 
     root_node = HarnessNode(
         node_id="C0",
@@ -330,7 +329,7 @@ def build(ctx: LaunchContext) -> BenchBundle:
             import dataclasses
 
             from benchmarks.appworld.evolve.run import build_appworld_sealed_runner
-            from pico.evolver.orchestrator.sealed.runner import unseal_retention
+            from pico.extensions.evolution.orchestrator.sealed.runner import unseal_retention
 
             runner = build_appworld_sealed_runner(
                 aw_cfg=cfg,

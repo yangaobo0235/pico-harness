@@ -15,9 +15,10 @@ from typing import Any, Iterator, Protocol
 
 import yaml
 
-from pico.product import get_product_home
-from pico.providers.base import LLMProvider, ToolCallRequest
-from pico.utils.portable_lock import LockTimeoutError, file_lock
+from pico.config.identity import get_product_home
+from pico.integrations.llm.contracts import LLMProvider, ToolCallRequest
+from pico.shared.locking import LockTimeoutError, file_lock
+from pico.shared.paths import native_path
 
 from .artifacts import ArtifactError, ArtifactStore
 from .budget import (
@@ -901,7 +902,7 @@ def default_campaign_services() -> CampaignServices:
 async def _run_deterministic_gate(
     output_root: Path,
 ) -> DeterministicGateResult:
-    from pico.sandbox.config import SandboxConfig
+    from pico.integrations.execution.config import SandboxConfig
 
     from .packs.runtime import (
         run_r0_scheduler_track,
@@ -918,7 +919,7 @@ async def _run_deterministic_gate(
     )
     with tempfile.TemporaryDirectory(
         prefix="picobench-smoke-",
-        dir=output_root,
+        dir=native_path(output_root, force=True),
     ) as temporary:
         root = Path(temporary)
         r0 = await run_r0_scheduler_track()
@@ -1156,9 +1157,9 @@ def _resolve_pico_commit() -> str:
 
 
 def _resolve_provider() -> ResolvedProvider:
-    from pico.cli._helpers import make_provider
     from pico.config.loader import load_config
-    from pico.config.pico import load_pico_config
+    from pico.config.models.features import load_pico_config
+    from pico.interfaces.cli.services import make_provider
 
     config = load_config()
     pico_config = load_pico_config()
@@ -2287,7 +2288,7 @@ def _tokenizer_identity(
     model: str,
 ) -> tuple[str, str, str]:
     try:
-        from pico.providers.litellm_setup import import_litellm
+        from pico.integrations.llm.providers.litellm_setup import import_litellm
 
         litellm = import_litellm()
         token_count = litellm.token_counter(

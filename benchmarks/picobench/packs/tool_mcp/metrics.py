@@ -10,7 +10,7 @@ from typing import Any
 import tiktoken
 
 from benchmarks.picobench.canonical import canonical_digest, canonical_json
-from pico.spine import ToolEvent, ToolPhase
+from pico.runtime.scheduling import ToolEvent, ToolPhase
 
 from .models import TargetCallRecord, TargetCallSummary
 

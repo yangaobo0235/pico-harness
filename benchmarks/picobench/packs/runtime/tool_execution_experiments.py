@@ -8,13 +8,7 @@ from dataclasses import asdict, dataclass
 from statistics import median
 from typing import Any
 
-from pico.agent.tools import (
-    Tool,
-    ToolCapability,
-    ToolEffect,
-    ToolInvocation,
-    ToolRegistry,
-)
+from pico.capabilities.tools import Tool, ToolCapability, ToolEffect, ToolInvocation, ToolRegistry
 
 TOOL_EXECUTION_EXPERIMENT_SCHEMA = "pico.picobench.tool-execution-experiment.v1"
 

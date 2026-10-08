@@ -1,7 +1,7 @@
-# 小型真实演化运行：针对 scripts/setup_small_real_subject.py 生成的一次性目标仓库
+# 小型真实演化运行：针对 scripts/dev/setup_small_real_subject.py 生成的一次性目标仓库
 # 执行一轮漏斗。
 #
-#   uv run python scripts/setup_small_real_subject.py            # 仅执行一次
+#   uv run python scripts/dev/setup_small_real_subject.py            # 仅执行一次
 #   uv run pico evolve check    --config benchmarks/evolver/small_real.yaml
 #   uv run pico evolve run      --config benchmarks/evolver/small_real.yaml --smoke
 #   uv run pico evolve run      --config benchmarks/evolver/small_real.yaml
@@ -14,7 +14,7 @@
 
 bench: appworld
 repo_root: subject                # 相对此文件；被 Git 忽略并由脚本创建
-                                  # scripts/setup_small_real_subject.py
+                                  # scripts/dev/setup_small_real_subject.py
 # 省略 base_sha：目标恰有一个提交，启动时解析并在整个运行期间固定。
 work_dir: ../../.pico/evolver/small-real   # 位于目标仓库外、被 Git 忽略的
                                            # .pico/ 证据根目录下

@@ -54,20 +54,16 @@ from benchmarks.picobench.usage import (
     UsageRecorder,
     usage_scope,
 )
-from pico.config.pico import MemoryConfig, PicoConfig
-from pico.config.schema import Config
-from pico.context_engine.assembler import ContextAssembler
-from pico.context_engine.segments import (
-    BootstrapSegmentBuilder,
-    IdentitySegmentBuilder,
-    MemorySegmentBuilder,
-)
-from pico.context_engine.segments.curator import CuratorSegmentBuilder
-from pico.memory_engine import Memory
-from pico.plugin import PluginContext, ServiceLocator
-from pico.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-from pico.spine import ChatType, Origin, Source, TurnRequest
-from pico.utils.helpers import estimate_prompt_tokens
+from pico.capabilities.memory import Memory
+from pico.config.models.features import MemoryConfig, PicoConfig
+from pico.config.models.runtime import Config
+from pico.integrations.llm.contracts import LLMProvider, LLMResponse, ToolCallRequest
+from pico.integrations.plugins import PluginContext, ServiceLocator
+from pico.runtime.context.assembler import ContextAssembler
+from pico.runtime.context.segments import BootstrapSegmentBuilder, IdentitySegmentBuilder, MemorySegmentBuilder
+from pico.runtime.context.segments.curator import CuratorSegmentBuilder
+from pico.runtime.scheduling import ChatType, Origin, Source, TurnRequest
+from pico.shared.tokenization import estimate_prompt_tokens
 
 from .models import SemanticMemoryEffectTask
 from .semantic_runtime import CountingEmbeddingProvider
@@ -1600,7 +1596,7 @@ class _RecordingProductionEverosBackend:
         user_recall_enabled: bool,
         drive_production_lifespan: bool,
     ) -> None:
-        from pico.plugin.memory.everos.backend import EverosBackend
+        from pico.integrations.plugins.memory.everos.backend import EverosBackend
 
         self._delegate = EverosBackend(
             PluginContext(
@@ -1624,9 +1620,7 @@ class _RecordingProductionEverosBackend:
         if self._drive_production_lifespan:
             await self._delegate.start()
             return
-        from pico.plugin.memory.everos.backend import (
-            _try_make_real_adapter,
-        )
+        from pico.integrations.plugins.memory.everos.backend import _try_make_real_adapter
 
         self._delegate._adapter = await asyncio.to_thread(
             _try_make_real_adapter,
@@ -1861,11 +1855,11 @@ async def _evaluation_stage(
         budget_scope = contextlib.nullcontext()
     with (
         patch(
-            "pico.cli._plugin_stack.maybe_build_memory_backend",
+            "pico.bootstrap.plugins.maybe_build_memory_backend",
             return_value=backend,
         ),
         patch(
-            "pico.cli._plugin_stack.build_plugin_tools",
+            "pico.bootstrap.plugins.build_plugin_tools",
             return_value=[],
         ),
     ):
@@ -1976,7 +1970,7 @@ def _runtime_dependencies(
         raise ValueError(
             f"unknown provider mode: {provider_spec['mode']}",
         )
-    from pico.cli._helpers import make_provider
+    from pico.interfaces.cli.services import make_provider
 
     private_config_path = Path(str(provider_spec["private_config_path"]))
     payload = json.loads(

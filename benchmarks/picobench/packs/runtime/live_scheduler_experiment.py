@@ -16,11 +16,11 @@ from typing import Any
 
 from loguru import logger
 
-from pico.agent.spine_runner import AgentTurnRunner
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import GenerationSettings, LLMProvider
-from pico.spine import ChatType, Origin, OriginPools, Scheduler, Source, Text, TurnOutcome, TurnRequest
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
+from pico.integrations.llm.contracts import GenerationSettings, LLMProvider
+from pico.runtime.agent.turn_adapter import AgentTurnRunner
+from pico.runtime.scheduling import ChatType, Origin, OriginPools, Scheduler, Source, Text, TurnOutcome, TurnRequest
 
 from ...artifacts import ArtifactStore
 from ...budget import (
@@ -534,7 +534,7 @@ async def _run_live_arm(
     provider: LLMProvider,
     workspace: Path,
 ) -> dict[str, Any]:
-    from pico.cli._runtime_assembly import assemble_runtime
+    from pico.bootstrap.container import assemble_runtime
 
     runtime_config = base_config.model_copy(deep=True)
     runtime_config.agents.defaults.workspace = str(workspace)
@@ -889,7 +889,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 async def _main() -> int:
-    from pico.cli._helpers import make_provider
+    from pico.interfaces.cli.services import make_provider
 
     args = _parse_args()
     repository_root = Path(__file__).resolve().parents[4]

@@ -1,203 +1,233 @@
-<div align="center">
-
 # Pico
 
-### 一套 Agent Runtime，跟你去每个工作入口。
+[![CI](https://github.com/yangaobo0235/pico-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/yangaobo0235/pico-harness/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-在终端、原生 TUI、后台 Gateway、定时任务和消息渠道中运行同一个会用工具的 Agent。
-入口可以变化，Turn、Session、Context、工具和证据模型保持一致。
+面向本地任务和消息渠道的 Python + Node.js AI 助手运行程序，连接大模型、组装上下文并执行工具，提供终端交互、会话管理、定时任务和执行记录查看。
 
-![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-Apache--2.0-0B7285)
-![Status](https://img.shields.io/badge/Status-Alpha-F59E0B)
+你可以在代码仓库中让它分析调用链，通过飞书发送任务，或安排周期任务。Python 负责 Agent 执行和状态管理，Node.js 负责终端界面与 Trace 查看器，所有入口共用同一套模型与工具执行机制。
 
-[快速开始](#从安装到第一条真实回复) ·
-[首次使用指南](docs/onboarding/README.zh-CN.md) ·
-[飞书接入](docs/onboarding/feishu.zh-CN.md) ·
-[Agent 安装契约](docs/onboarding/agent-install.md)
+## 核心能力
 
-</div>
+- 通过 CLI 和终端界面接收任务，支持单次请求、持续对话和会话恢复。
+- 连接配置的模型 Provider，支持原生适配及 OpenAI 兼容端点。
+- 执行文件读写、搜索、Shell、网页和 MCP 工具，将工具结果送回模型继续处理。
+- 按会话调度请求，处理排队、取消、并发和定时任务。
+- 根据上下文预算选择历史、本地技能和可选记忆，控制单次请求的迭代上限。
+- 接入飞书、企业微信和 QQ，通过 Gateway 持续接收消息并交付回复。
+- 保存对话、调用用量和 Trace，提供浏览器中的执行记录查看器。
+- 通过插件协议扩展工具和长期记忆能力。
 
----
+当前公开版本不附带外部长期记忆实现。首次配置使用 `--skip-memory`；会话保存、上下文管理和本地技能仍可使用。
 
-Pico 是一套紧凑的 Agent Harness。不同入口不用各自实现 Agent Loop，而是把 Turn
-提交给同一套 Runtime。Pico 负责调度、取消、Context 组装、工具执行、Session
-持久化、Tracing 和投递。外部 Memory Backend 可以接入这套 Runtime，但当前发布
-不包含外部 Memory 实现。
+## 系统架构
 
 ```mermaid
 flowchart LR
-    U["你"] --> H["CLI · TUI · Gateway · Cron · 飞书"]
-    H --> S["Spine"]
-    S --> T["Turn Runner"]
-    T --> A["Agent Loop"]
-    A <--> C["Context"]
-    A <--> M["可选 Memory"]
-    A <--> X["Tools · MCP · Sandbox"]
-    A <--> P["Providers"]
-    T --> E["Session · Tracing · Delivery"]
+    User["用户"] --> CLI["Python CLI"]
+    User --> TUI["Node.js TUI"]
+    TUI --> RPC["Python RPC 宿主"]
+    Channel["飞书 / 企业微信 / QQ"] --> Gateway["Python Gateway"]
+    CLI --> Scheduler["请求调度器"]
+    RPC --> Scheduler
+    Gateway --> Scheduler
+    Cron["定时任务"] --> Scheduler
+    Scheduler --> Agent["Agent 执行器"]
+    Agent --> Context["上下文 / 历史 / Skills"]
+    Agent <--> Model["模型 Provider"]
+    Agent <--> Tools["文件 / Shell / 网页 / MCP"]
+    Agent --> State["会话 / 用量 / Trace"]
+    State --> Viewer["Node.js Trace 查看器"]
 ```
 
-## 从安装到第一条真实回复
+## Python 与 Node.js 职责
 
-Pico 需要 Python 3.12。原生 TUI 使用 Node.js 22；系统缺少合适版本时，安装器
-可以配置私有 Node Runtime。
+| 能力 | 所有者 | 说明 |
+| --- | --- | --- |
+| CLI、RPC 和消息 Gateway | Python | 接收输入、适配协议和交付结果 |
+| 调度、模型调用和工具执行 | Python | 统一 Agent 运行时，维护取消与执行限制 |
+| 上下文、会话、技能和记忆协议 | Python | 组装模型输入并保存运行状态 |
+| 模型、渠道、MCP 和执行器适配 | Python | 连接外部服务与执行环境 |
+| 终端界面 | Node.js / TypeScript | 显示对话、工具事件和交互状态 |
+| Trace 查看器 | Node.js / JavaScript | 读取调用记录并在浏览器展示 |
 
-克隆公共仓库，再运行安装器：
+TUI 通过本机 RPC 与 Python 宿主通信。模型调用和工具副作用由 Python 运行时处理。
 
-```bash
-git clone https://github.com/yangaobo0235/pico-harness.git
-cd pico-harness
-./install.sh
+## Agent 请求流程
+
+```text
+用户输入 / 渠道消息 / 定时任务
+  -> 创建统一请求，确定来源和会话
+  -> 调度器按会话排队并控制并发
+  -> 组装规则、历史、技能和本轮输入
+  -> 调用模型，执行模型提出的工具请求
+  -> 将工具结果加入上下文，继续模型与工具循环
+  -> 得到回复、被取消或达到执行限制
+  -> 保存会话与调用记录，向原入口交付结果
 ```
 
-Windows PowerShell：
+一次请求可以包含多次模型调用。同一会话的任务串行执行，其他会话按并发限制运行。
+
+## 技术栈
+
+| 分类 | 技术 |
+| --- | --- |
+| Python 运行时 | Python 3.12、asyncio、Typer、Pydantic |
+| 模型与外部协议 | LiteLLM、原生 Provider、HTTPX、MCP |
+| 终端界面 | Node.js 22、TypeScript、React、Ink、Nanostores |
+| 状态与调度 | 文件持久化、Portalocker、Croniter |
+| 执行环境 | 主机执行器、可选 Boxlite Sandbox |
+| 执行记录 | 内置 Trace、Token 用量与成本计量、Node.js 查看器 |
+| 测试与质量 | Pytest、Ruff、Vitest、ESLint、TypeScript、GitHub Actions |
+| 依赖与构建 | uv、npm、Hatchling、esbuild |
+
+## 项目结构
+
+```text
+pico-harness/
+|-- .github/                 # CI、Issue 表单与 PR 模板
+|-- src/pico/                # Python 产品代码
+|   |-- interfaces/          # CLI、RPC 和 Gateway
+|   |-- bootstrap/           # 服务与 Provider 装配
+|   |-- runtime/             # Agent、上下文、调度、会话和交付
+|   |-- capabilities/        # 工具、技能、记忆与自动化
+|   |-- integrations/        # 模型、渠道、MCP、执行器与插件
+|   |-- config/              # 配置模型、加载和状态路径
+|   |-- contracts/           # 请求、消息与事件
+|   |-- observability/       # Trace 和调用用量
+|   |-- security/            # 权限与授权策略
+|   |-- extensions/          # 运行时评估与改进实验
+|   |-- resources/           # 内置模板、技能和打包资源
+|   `-- shared/              # 基础算法、路径、锁和原子 IO
+|-- apps/tui/                # 终端界面
+|-- apps/tracing-viewer/     # 浏览器 Trace 查看器
+|-- tests/                   # 单元、契约、集成和工程测试
+|-- benchmarks/              # 能力评测与任务输入
+|-- scripts/                 # CI、开发、安装和发行脚本
+|-- examples/                # 配置与工作流示例
+|-- docs/                    # 安装、使用、配置、架构、测试和排障
+|-- LICENSES/                # 第三方许可证原文
+`-- README.md
+```
+
+`.venv`、`.idea`、`.pico`、缓存和生成报告属于本地环境或运行数据，不进入 Git 仓库。
+
+## 环境要求
+
+- Python 3.12
+- Node.js 22 与 npm，供 TUI 和 Trace 查看器使用
+- uv 与 Git，供源码安装和开发使用
+- 可用的模型服务及对应凭证
+- 可选：消息平台应用、MCP 服务、支持所选平台的 Sandbox 执行器
+
+基础使用不需要部署额外的数据库或消息队列。模型可以连接远程服务，也可以选择配置的本地 Provider。
+
+## 快速开始
+
+### 1. 获取代码
 
 ```powershell
 git clone https://github.com/yangaobo0235/pico-harness.git
 Set-Location pico-harness
-.\install.ps1
 ```
 
-安装器从 GitHub 克隆 Pico 源码、本地构建 TUI bundle 后完成安装，并默认使用国内
-Python 与 Node.js 镜像。需要固定制品时，可以设置 `PICO_WHEEL_URL` 指向经过信任的
-wheel；需要换源时，可以设置 `PICO_REPO_URL`。
+### 2. 安装依赖并构建 TUI
 
-| 安装控制项 | 用途 |
-| --- | --- |
-| `PICO_REPO_URL` | 覆盖克隆用的 Pico 源码仓库地址 |
-| `PICO_WHEEL_URL` | 直接安装经过信任的 Pico wheel |
-| `PICO_PYPI_INDEX` | 覆盖 Python 包索引 |
-| `PICO_NODE_MIRROR` | 覆盖 Node.js 下载镜像 |
-| `PICO_NODE_CHECKSUM_BASE` | 覆盖 Node.js 校验清单来源 |
-| `PICO_NPM_REGISTRY` | 覆盖 npm registry |
-| `PICO_UV_INSTALL_URL` | 覆盖 uv 安装脚本地址 |
-
-进入希望 Pico 工作的仓库，再完成首次配置：
-
-```bash
-cd /path/to/your-project
-pico onboard --skip-memory
-```
-
-向导按照第一个可验证结果组织为四步：
-
-```text
-LLM 凭证 -> 明确关闭 Memory -> 第一条真实 Turn
-         -> 运行位置 -> 可选消息渠道
-```
-
-当前 GitHub 发布不包含外部 Memory 实现，因此 `--skip-memory` 是受支持的路径。
-Pico 会写入 `memory.backend = null`，不会把缺失的 Backend 伪装成健康状态。
-
-向导完成后：
-
-```bash
-pico
-pico run -m "说明这个仓库的主请求路径"
-pico doctor --probe
-```
-
-`pico doctor --probe` 会发送一次真实模型请求。静态配置检查通过，或者跳过 probe，
-都不能证明 Provider 已经返回回复。
-
-[首次使用指南](docs/onboarding/README.zh-CN.md)包含源码安装细节、
-非交互配置、精确验收命令和常见恢复路径。
-
-## Pico 负责什么
-
-| 你需要什么 | Pico 负责什么 |
-| --- | --- |
-| 一个 Agent 跨多个入口 | CLI、TUI、Gateway、Cron 和 Channels 提交同一个 Turn 契约 |
-| Context 不变成 Prompt 堆积 | 每次模型调用前检索、预算并组装 Context |
-| 有明确边界的工具 | Filesystem、Shell、Web、MCP、消息和 Subagent 共用确认与 Sandbox 控制 |
-| 可以恢复的对话 | Session 独立于当前终端进程持久化 |
-| 可以定位的结果 | Tracing、Provider 用量、投递状态和评测证据分别记录 |
-| 人工控制的改进 | Evolver 生成候选和证据，激活与回滚由操作人员明确执行 |
-
-## 接入飞书
-
-Pico 使用飞书 WebSocket 长连接，不需要公网 IP 或 Webhook 域名。
-
-```bash
-pico channels enable feishu \
-  --app-id "cli_xxxxxxxxxxxxxxxx" \
-  --app-secret "$FEISHU_APP_SECRET"
-
-cd /path/to/your-project
-pico gateway --workspace "$PWD" --verbose
-```
-
-飞书应用仍然需要机器人能力、消息权限、`im.message.receive_v1` 和已发布的应用版本。
-发送入站消息前，请先完成[飞书接入指南](docs/onboarding/feishu.zh-CN.md)。配置写入
-成功不能证明真实收发链路已经工作。
-
-## 值得记住的命令
-
-| 目标 | 命令 |
-| --- | --- |
-| 配置 Pico 并执行第一条 Turn | `pico onboard --skip-memory` |
-| 打开原生 TUI | `pico` |
-| 执行一次 Turn | `pico run -m "..."` |
-| 检查 Runtime 与 Provider | `pico doctor --probe` |
-| 查看已安装 Plugin | `pico plugins` |
-| 管理消息渠道 | `pico channels ...` |
-| 服务已启用的渠道 | `pico gateway --workspace /path/to/project` |
-| 管理定时任务 | `pico cron ...` |
-| 查看 Session 与 Tracing | `pico sessions ...` / `pico tracing` |
-| 执行人工受控的演进 | `pico evolve check\|run\|status\|finalize` |
-
-## 状态与安全
-
-| 范围 | 默认位置 |
-| --- | --- |
-| 全局配置与 Runtime 数据 | `~/.pico` |
-| 前台项目 | 当前目录 |
-| 前台项目状态 | `~/.pico/projects/<project-id>` |
-| Gateway Workspace | 显式传入 `--workspace`，否则使用 `~/.pico/workspace` |
-
-正常启动会把 Pico 状态放在仓库之外。可执行 Plugin 只从 Pico 内置目录、操作人员
-管理的 `~/.pico/plugins/` 和已安装的 `pico.plugins` entry point 中发现。
-仓库里的 `.pico/plugins/` 不会成为自动启动来源。
-
-修改 Backend 或把安装交给其他操作人员前，请先阅读
-[Memory 边界](docs/onboarding/memory.zh-CN.md)和
-[故障排查](docs/onboarding/troubleshooting.md)。
-
-## 发布仓库边界
-
-这个仓库保留可发布源码、确定性测试、经过审核的 Benchmark 代码与 Fixture、
-安装器、Onboarding 文档和法律文件。开发计划、原始运行数据、真实凭证、私有环境说明
-和未发布的外部 Memory 制品不会进入发布仓库。
-
-公开 Benchmark 结果只适用于文档中写明的冻结 Workload 与 Verifier，不能外推为
-生产 SLA。评测入口见[评测索引](docs/evaluation/README.md)和
-[`benchmarks/`](benchmarks/)。
-
-## 参与贡献
-
-第一次参与 Pico，可以从带有 `good-first-issue` 标签的任务开始。每个可认领任务都会
-写明目标分支、相关文件、范围和验收命令；请先在 Issue 下留言认领，再提交一个只处理
-该问题的 Pull Request。
-
-完整流程、分支说明和本地验证命令见[贡献指南](CONTRIBUTING.md)。Bug 报告请使用
-GitHub Issue 模板，并在公开内容中移除 Token、私钥、内部地址和个人数据。
-
-## 开发与验证
-
-```bash
-uv sync --frozen --extra dev --dev
+```powershell
+uv sync --frozen --extra dev --extra channels
 npm ci
-npm ci --prefix ui-tui
-make check
-make picobench-smoke
-PICO_RELEASE_OUTPUT=/absolute/empty/output make release-dist
+npm ci --prefix apps/tui
+npm run build:tui
+uv run pico --version
 ```
 
-Pico 仍处于 pre-1.0，接口可能变化。`make check` 验证保留的发布树，不能替代真实
-Provider 或消息渠道的 Smoke Test。
+`channels` 安装飞书、企业微信和 QQ 的依赖；仅使用 CLI/TUI 可以省略该 extra。
 
-## 许可证
+### 3. 配置模型
 
-Pico 使用 Apache License 2.0。第三方归属与许可证见 [LICENSE](LICENSE)、
-[NOTICES.md](NOTICES.md) 和 [LICENSES/](LICENSES/)。
+```powershell
+uv run pico onboard --skip-memory
+```
+
+向导选择 Provider、模型、凭证及运行环境，默认执行首次真实请求。使用 `--skip-test` 可以跳过该请求，之后通过 `uv run pico doctor --probe` 验证连接。
+
+### 4. 启动助手
+
+打开 TUI：
+
+```powershell
+uv run pico
+```
+
+执行单次任务：
+
+```powershell
+uv run pico run -m "阅读 README 和入口文件，说明这个项目做什么"
+```
+
+以上命令在当前目录工作。需要在其他项目直接使用 `pico` 时，可在本仓库安装独立命令：
+
+```powershell
+uv tool install ".[channels]"
+```
+
+进入目标项目后运行 `pico` 或 `pico run -m "..."`。具体安装方式、工作目录和 IDE 配置见[安装指南](docs/getting-started/installation.md)。
+
+## 运行入口
+
+以下示例在源码环境中使用 `uv run`；独立安装后可直接调用 `pico`。
+
+| 入口 | 命令 | 用途 |
+| --- | --- | --- |
+| TUI | `uv run pico` | 终端对话与工具交互 |
+| CLI | `uv run pico run -m "..."` | 单次任务或脚本调用 |
+| 会话恢复 | `uv run pico run --continue` | 继续最近的 CLI 对话 |
+| Gateway | `uv run pico gateway --workspace /path/to/workspace` | 持续接收消息渠道任务 |
+| 模型诊断 | `uv run pico doctor --probe` | 验证真实模型连接 |
+| Trace 查看器 | `uv run pico tracing` | 在浏览器查看执行记录 |
+
+Gateway 需要配置启用的渠道并持续运行。显式 `--workspace` 会在该目录保存项目状态，长期运行可选择仓库外的专用目录。
+
+## 测试
+
+Python：
+
+```powershell
+uv run ruff check src scripts tests benchmarks hatch_build.py
+uv run pytest tests -n 4 -q --strict-markers
+```
+
+TUI：
+
+```powershell
+npm run lint:tui
+npm run typecheck:tui
+npm run test:tui
+npm run build:tui
+```
+
+CI 配置覆盖 Ubuntu 和 Windows，包含 Python 静态检查与回归、架构和文档检查、前端类型与 RPC 检查、TUI 测试及发行包构建。完整本地命令和真实环境测试见[测试指南](docs/development/testing.md)。
+
+## 运行与安全说明
+
+- 模型请求可能产生费用；凭证保存在本地配置中。
+- 文件访问边界由工具配置控制，命令执行环境由执行器和 Sandbox 配置决定。
+- 消息渠道通过配置的发送者和群消息规则接收任务。
+- 插件属于可执行代码，部署者应控制插件来源。
+- 个人会话、Trace、原始评测输出和密钥不提交到 Git。
+- 安全问题按[安全报告流程](SECURITY.md)私下提交。
+
+## 更多文档
+
+- [安装与首次运行](docs/getting-started/installation.md)
+- [使用指南](docs/guides/usage.md)
+- [配置参考](docs/reference/configuration.md)
+- [架构与函数归属](docs/architecture/overview.md)
+- [测试指南](docs/development/testing.md)
+- [故障排查](docs/guides/troubleshooting.md)
+- [Benchmark 使用说明](benchmarks/README.md)
+- [贡献指南](CONTRIBUTING.md)
+
+## License
+
+本项目使用 [Apache License 2.0](LICENSE)。第三方版权和许可证见[第三方声明](NOTICES.md)。项目处于 pre-1.0 阶段。

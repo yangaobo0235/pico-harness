@@ -6,9 +6,40 @@ declaration.
 
 from __future__ import annotations
 
+import hashlib
 import os
+import tempfile
+from pathlib import Path
 
 import pytest
+
+
+@pytest.fixture
+def tmp_path(tmp_path_factory, request):
+    """Keep nested benchmark paths below Windows' legacy path-length limit."""
+    if os.name == "nt":
+        with tempfile.TemporaryDirectory(prefix="pt-", ignore_cleanup_errors=True) as directory:
+            yield Path(directory)
+    else:
+        suffix = hashlib.sha256(request.node.nodeid.encode()).hexdigest()[:12]
+        yield tmp_path_factory.mktemp(f"t-{suffix}")
+
+
+@pytest.fixture
+def require_symlinks(tmp_path):
+    """Probe actual symlink permissions rather than assuming them from the OS."""
+    target = tmp_path / "symlink-probe-target"
+    link = tmp_path / "symlink-probe-link"
+    target.write_text("probe", encoding="utf-8")
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        pytest.skip(f"symbolic links unavailable in this environment: {exc}")
+    finally:
+        if link.is_symlink():
+            link.unlink()
+        target.unlink(missing_ok=True)
+
 
 _OPT_IN_MARKERS = (
     "real_llm",
@@ -107,7 +138,7 @@ def _restore_loguru_enabled_state():
     """Undo any ``loguru.logger.disable("pico")`` left over from a
     prior test.
 
-    ``pico/cli/agent_commands.py`` toggles ``logger.disable("pico")``
+    ``src/pico/interfaces/cli/commands/run.py`` toggles ``logger.disable("pico")``
     based on a ``--no-logs`` flag. The disable is process-global on
     loguru's singleton logger, so once a CliRunner-based test exercises
     that branch the flag persists for the rest of the pytest session,
@@ -130,7 +161,7 @@ def _no_openrouter_network(tmp_path):
     and mock the transport. The disk cache path is also redirected to a temp
     file so the real ~/.pico/cache/ is never read or written.
     """
-    from pico.token_wise import model_catalog_cache, pricing
+    from pico.integrations.llm.strategies import model_catalog_cache, pricing
 
     original_fetch = pricing._fetch_openrouter_models
     original_path = model_catalog_cache._CACHE_PATH

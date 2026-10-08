@@ -6,7 +6,7 @@ key.env
 .venv/
 venv/
 node_modules/
-ui-tui/node_modules/
+apps/tui/node_modules/
 
 __pycache__/
 *.py[cod]
@@ -21,10 +21,10 @@ htmlcov/
 
 dist/
 build/
-ui-tui/dist/
-ui-tui/coverage/
-ui-tui/.vitest-cache/
-ui-tui/packages/hermes-ink/dist/
+apps/tui/dist/
+apps/tui/coverage/
+apps/tui/.vitest-cache/
+apps/tui/packages/hermes-ink/dist/
 
 .pico/
 .skill_index/
@@ -48,3 +48,8 @@ benchmarks/clawbench/results/
 benchmarks/pinchbench/benchmark.log
 benchmarks/pinchbench/results/
 benchmarks/evolver/subject/
+
+# Generated reports and local environment
+artifacts/
+.env.*
+!.env.example

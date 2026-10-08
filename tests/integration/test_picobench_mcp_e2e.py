@@ -17,12 +17,7 @@ from benchmarks.picobench.packs.tool_mcp import (
 from benchmarks.picobench.protocol import TrialContext
 from benchmarks.picobench.records import TrialKey, TrialStatus, VerificationState
 from benchmarks.picobench.schema import ExperimentSpec
-from pico.providers.base import (
-    GenerationSettings,
-    LLMProvider,
-    LLMResponse,
-    ToolCallRequest,
-)
+from pico.integrations.llm.contracts import GenerationSettings, LLMProvider, LLMResponse, ToolCallRequest
 
 
 class _InjectedProvider(LLMProvider):

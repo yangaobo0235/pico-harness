@@ -75,7 +75,7 @@ def test_session_lifecycle_survives_processes_and_isolates_forks(
         [
             sys.executable,
             "-m",
-            "pico.cli.commands",
+            "pico.interfaces.cli.app",
             "sessions",
             "resume",
             seeded["parent_key"].partition(":")[2],

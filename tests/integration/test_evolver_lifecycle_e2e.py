@@ -30,7 +30,7 @@ def _run(
         [
             sys.executable,
             "-m",
-            "pico.cli.commands",
+            "pico.interfaces.cli.app",
             "evolve",
             command,
             "--config",
@@ -41,6 +41,7 @@ def _run(
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         timeout=30,
     )
@@ -145,8 +146,8 @@ def test_evolution_run_resumes_statuses_and_finalizes_across_processes(
     )
     assert started.returncode == 130, (started.stdout, started.stderr)
     journal_path = work_dir / "journal" / "rounds.jsonl"
-    assert len(journal_path.read_text().splitlines()) == 1
-    assert json.loads((work_dir / "run_meta.json").read_text())["unsealed_at"] is None
+    assert len(journal_path.read_text(encoding="utf-8").splitlines()) == 1
+    assert json.loads((work_dir / "run_meta.json").read_text(encoding="utf-8"))["unsealed_at"] is None
 
     resumed = _run(
         config_path,
@@ -155,7 +156,7 @@ def test_evolution_run_resumes_statuses_and_finalizes_across_processes(
         interrupt_round=3,
     )
     assert resumed.returncode == 130, (resumed.stdout, resumed.stderr)
-    assert len(journal_path.read_text().splitlines()) == 2
+    assert len(journal_path.read_text(encoding="utf-8").splitlines()) == 2
 
     status = _run(
         config_path,
@@ -190,11 +191,11 @@ def test_evolution_run_resumes_statuses_and_finalizes_across_processes(
         "--yes",
     )
     assert finalized.returncode == 0, (finalized.stdout, finalized.stderr)
-    assert json.loads((work_dir / "retention.json").read_text()) == {
+    assert json.loads((work_dir / "retention.json").read_text(encoding="utf-8")) == {
         "best_round": 2,
         "retention": 1.0,
     }
-    run_meta = json.loads((work_dir / "run_meta.json").read_text())
+    run_meta = json.loads((work_dir / "run_meta.json").read_text(encoding="utf-8"))
     assert run_meta["unsealed_at"]
     assert run_meta["finalize_reason"] == "user_finalized"
     assert summary_path.read_bytes() == summary_before_finalize

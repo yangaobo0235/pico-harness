@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
-import fcntl
 import json
 import math
 import os
@@ -16,6 +15,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+import portalocker
 import yaml
 
 from benchmarks.picobench.budget import (
@@ -40,7 +40,8 @@ from benchmarks.picobench.packs.memory_skill.semantic_runtime import (
     run_semantic_runtime,
     semantic_runtime_identity,
 )
-from pico.product import get_product_home
+from pico.config.identity import get_product_home
+from pico.shared.atomic_io import sync_directory
 
 SEMANTIC_SCHEMA = "pico.picobench.semantic-addendum.v1"
 SEMANTIC_SCHEMA_V2 = "pico.picobench.semantic-addendum.v2"
@@ -760,9 +761,9 @@ def _inspect_semantic_budget_ledger(
             ) from exc
     try:
         with path.open("r", encoding="utf-8") as handle:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
+            portalocker.lock(handle, portalocker.LOCK_SH)
             events = [json.loads(line) for line in handle if line.strip()]
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            portalocker.unlock(handle)
     except (OSError, json.JSONDecodeError) as exc:
         raise SemanticCampaignError("semantic embedding budget ledger is unreadable") from exc
     reservations: dict[str, float] = {}
@@ -1365,16 +1366,16 @@ def _exclusive_semantic_lock(
     lock_path = lock_root / f"{experiment_id}.lock"
     with lock_path.open("a+b") as handle:
         try:
-            fcntl.flock(
-                handle.fileno(),
-                fcntl.LOCK_EX | fcntl.LOCK_NB,
+            portalocker.lock(
+                handle,
+                portalocker.LOCK_EX | portalocker.LOCK_NB,
             )
-        except BlockingIOError as exc:
+        except portalocker.exceptions.LockException as exc:
             raise SemanticCampaignError("semantic experiment already has an active writer") from exc
         try:
             yield
         finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            portalocker.unlock(handle)
 
 
 def _freeze_json(path: Path, value: dict[str, Any]) -> None:
@@ -1427,11 +1428,7 @@ def _atomic_write(path: Path, payload: bytes) -> None:
 
 
 def _fsync_directory(path: Path) -> None:
-    directory_fd = os.open(path, os.O_RDONLY)
-    try:
-        os.fsync(directory_fd)
-    finally:
-        os.close(directory_fd)
+    sync_directory(path)
 
 
 def _read_object(path: Path) -> dict[str, Any]:

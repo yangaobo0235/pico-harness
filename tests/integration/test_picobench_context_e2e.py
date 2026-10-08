@@ -17,18 +17,13 @@ from benchmarks.picobench.packs.context import (
 from benchmarks.picobench.protocol import TrialContext
 from benchmarks.picobench.records import TrialKey, TrialStatus
 from benchmarks.picobench.schema import ExperimentSpec
-from pico.agent.context import ContextBuilder
-from pico.agent.tools.base import Tool
-from pico.config.pico import ContextConfig, PicoConfig
-from pico.config.schema import Config
-from pico.context_engine import TurnContext
-from pico.memory_engine.base import TokenBudget
-from pico.providers.base import (
-    ErrorClassification,
-    LLMProvider,
-    LLMResponse,
-    ToolCallRequest,
-)
+from pico.capabilities.tools.contracts import Tool
+from pico.config.models.features import ContextConfig, PicoConfig
+from pico.config.models.runtime import Config
+from pico.integrations.llm.contracts import ErrorClassification, LLMProvider, LLMResponse, ToolCallRequest
+from pico.runtime.context import TurnContext
+from pico.runtime.context.budget import TokenBudget
+from pico.runtime.context.instructions import ContextBuilder
 
 
 class _FallbackProvider:
@@ -247,7 +242,7 @@ async def test_runtime_context_runner_excludes_plugin_tools_and_uses_sealed_veri
         return [_PluginLeakTool()]
 
     monkeypatch.setattr(
-        "pico.cli._plugin_stack.build_plugin_tools",
+        "pico.bootstrap.plugins.build_plugin_tools",
         build_plugin_tools,
     )
     config = Config()

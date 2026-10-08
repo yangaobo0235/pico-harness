@@ -12,15 +12,15 @@ from pathlib import Path
 from typing import Any
 
 from benchmarks.picobench.canonical import canonical_bytes, canonical_digest
-from pico.agent.loop import AgentLoop
-from pico.agent.tools.base import Tool
-from pico.call_efficiency.models import CallRecord
+from pico.capabilities.tools.contracts import Tool
+from pico.config.models.features import PicoConfig
+from pico.config.models.runtime import Config
 from pico.config.paths import RuntimePaths
-from pico.config.pico import PicoConfig
-from pico.config.schema import Config
-from pico.providers.base import GenerationSettings, LLMResponse
-from pico.providers.litellm_provider import LiteLLMProvider
-from pico.spine import ChatType, Origin, Source, Text, TurnRequest
+from pico.integrations.llm.contracts import GenerationSettings, LLMResponse
+from pico.integrations.llm.providers.litellm_provider import LiteLLMProvider
+from pico.observability.usage.models import CallRecord
+from pico.runtime.agent import AgentLoop
+from pico.runtime.scheduling import ChatType, Origin, Source, Text, TurnRequest
 
 from .live import (
     PRICE_SNAPSHOT,
@@ -404,7 +404,7 @@ async def execute_live_trial(
     pico_config.call_efficiency.usage_tracking = True
     pico_config.context.fast_path_threshold = 1.0
     pico_config.runtime.checkpoint.policy = "never"
-    from pico.cli._runtime_assembly import assemble_runtime
+    from pico.bootstrap.container import assemble_runtime
 
     runtime = assemble_runtime(
         runtime_config,

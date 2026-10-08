@@ -31,7 +31,7 @@ from typing import Optional
 
 from benchmarks.appworld.evolve.adapter import AppWorldConfig
 from pico.config.loader import load_config
-from pico.evolver.orchestrator.scoring import PrecheckFn
+from pico.extensions.evolution.orchestrator.scoring import PrecheckFn
 
 
 def _port_bound(port: int, timeout: float = 0.3) -> bool:

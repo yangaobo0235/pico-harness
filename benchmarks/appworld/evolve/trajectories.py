@@ -24,8 +24,8 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from benchmarks.appworld.evolve.adapter import read_out_dir
-from pico.evolver.orchestrator.scoring import TaskEval
-from pico.evolver.tree.node import HarnessNode
+from pico.extensions.evolution.orchestrator.scoring import TaskEval
+from pico.extensions.evolution.tree.node import HarnessNode
 
 
 def _tool_code(assistant_msg: dict) -> str:

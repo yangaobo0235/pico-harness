@@ -8,16 +8,12 @@ from typing import Any
 
 from benchmarks.picobench.protocol import RetrievalContext, RetrievalExecution
 from benchmarks.picobench.records import RetrievalStatus
-from pico.context_engine.base import AssemblyContext
-from pico.context_engine.segments import MemorySegmentBuilder, SkillsSegmentBuilder
-from pico.memory_engine import Memory, TokenBudget
-from pico.memory_engine.skill_forge import (
-    LocalSkillSource,
-    RouterHit,
-    SkillForgeRouter,
-)
-from pico.memory_engine.skill_local import LocalPool, SkillMeta
-from pico.utils.bm25 import BM25Okapi, tokenize
+from pico.capabilities.memory import Memory, TokenBudget
+from pico.capabilities.skills.local import LocalPool, SkillMeta
+from pico.capabilities.skills.retrieval import LocalSkillSource, RouterHit, SkillForgeRouter
+from pico.runtime.context.base import AssemblyContext
+from pico.runtime.context.segments import MemorySegmentBuilder, SkillsSegmentBuilder
+from pico.shared.bm25 import BM25Okapi, tokenize
 
 from .fixtures import anonymous_item_id
 from .models import MemoryFact, SkillItem

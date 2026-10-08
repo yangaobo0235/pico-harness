@@ -130,8 +130,8 @@ def _session_to_openclaw_transcript(
 
 def _make_openrouter_provider(model: str, api_key: str):
     """Create an OpenRouter LLM provider via LiteLLM."""
-    from pico.providers.base import GenerationSettings
-    from pico.providers.litellm_provider import LiteLLMProvider
+    from pico.integrations.llm.contracts import GenerationSettings
+    from pico.integrations.llm.providers.litellm_provider import LiteLLMProvider
 
     provider = LiteLLMProvider(
         api_key=api_key,
@@ -162,10 +162,10 @@ async def execute_task(
     Returns a result dict compatible with PinchBench grading:
         task_id, status, transcript, workspace, execution_time, timed_out
     """
-    from pico.agent.loop import AgentLoop
-    from pico.config.schema import ExecToolConfig
-    from pico.session.manager import SessionManager
-    from pico.spine import ChatType, Origin, Source, Text, TurnRequest
+    from pico.config.models.runtime import ExecToolConfig
+    from pico.runtime.agent import AgentLoop
+    from pico.runtime.scheduling import ChatType, Origin, Source, Text, TurnRequest
+    from pico.runtime.sessions.service import SessionManager
 
     # 准备工作区。
     task_workspace = prepare_workspace(task, workspace, assets_dir)
@@ -179,7 +179,7 @@ async def execute_task(
     # 加载 skill_forge 配置，使机器人基准运行遵守 injection_mode、inject_max、
     # mass_library_db 等设置。否则 AgentLoop 收到 skill_forge_config=None，
     # SkillService 会回退到数据类默认值。
-    from pico.config.pico import load_pico_config
+    from pico.config.models.features import load_pico_config
 
     _ec_cfg = load_pico_config()
     skill_forge_cfg = getattr(_ec_cfg, "skill_forge", None)

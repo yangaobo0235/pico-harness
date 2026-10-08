@@ -1,0 +1,33 @@
+name: Build release artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version already recorded in pyproject.toml
+        required: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: uv sync --frozen --extra dev --extra channels
+      - name: Verify requested version
+        run: uv run python -c "import os, tomllib; v=tomllib.load(open('pyproject.toml','rb'))['project']['version']; assert v == os.environ['RELEASE_VERSION'], (v, os.environ['RELEASE_VERSION'])"
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+      - run: npm ci
+      - run: npm ci --prefix apps/tui
+      - run: make check
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pico-distributions
+          path: dist/*

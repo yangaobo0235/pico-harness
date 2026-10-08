@@ -7,12 +7,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, AsyncIterator, Iterator
 
-from pico.providers.base import (
-    ErrorClassification,
-    LLMProvider,
-    LLMResponse,
-    StreamDelta,
-)
+from pico.integrations.llm.contracts import ErrorClassification, LLMProvider, LLMResponse, StreamDelta
 
 from .budget import ProviderRequestNotDispatchedError
 

@@ -15,16 +15,12 @@ from sqlmodel import SQLModel
 
 from benchmarks.picobench.budget import ProviderBudgetLedger
 from benchmarks.picobench.canonical import canonical_digest
-from pico.context_engine.base import AssemblyContext
-from pico.context_engine.segments import MemorySegmentBuilder, SkillsSegmentBuilder
-from pico.memory_engine import Memory, TokenBudget
-from pico.memory_engine.skill_forge import (
-    LocalSkillSource,
-    RouterHit,
-    SkillForgeRouter,
-)
-from pico.memory_engine.skill_local import LocalPool, SkillMeta
-from pico.plugin import PluginContext, ServiceLocator
+from pico.capabilities.memory import Memory, TokenBudget
+from pico.capabilities.skills.local import LocalPool, SkillMeta
+from pico.capabilities.skills.retrieval import LocalSkillSource, RouterHit, SkillForgeRouter
+from pico.integrations.plugins import PluginContext, ServiceLocator
+from pico.runtime.context.base import AssemblyContext
+from pico.runtime.context.segments import MemorySegmentBuilder, SkillsSegmentBuilder
 
 from .fixtures import anonymous_item_id
 from .models import MemoryFact, SkillItem
@@ -420,7 +416,7 @@ class _RecordingEverosBackend:
         *,
         user_min_score: float,
     ) -> None:
-        from pico.plugin.memory.everos.backend import EverosBackend
+        from pico.integrations.plugins.memory.everos.backend import EverosBackend
 
         self._delegate = EverosBackend(
             PluginContext(

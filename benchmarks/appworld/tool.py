@@ -23,7 +23,7 @@ from typing import Any
 
 import requests
 
-from pico.agent.tools.base import Tool
+from pico.capabilities.tools.contracts import Tool
 
 
 class AppWorldExecuteTool(Tool):
