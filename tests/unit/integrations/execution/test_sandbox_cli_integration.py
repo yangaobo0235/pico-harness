@@ -19,7 +19,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Sandbox debug transport requires POSIX Unix sockets")
+pytestmark = [
+    pytest.mark.skipif(sys.platform == "win32", reason="Sandbox debug transport requires POSIX Unix sockets"),
+    pytest.mark.usefixtures("boxlite_stub"),
+]
 from typer.testing import CliRunner
 
 from pico.integrations.execution.debug_server import SandboxDebugServer

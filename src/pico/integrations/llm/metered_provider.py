@@ -13,11 +13,13 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Awaitable, Callable
 from threading import RLock
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pico.integrations.llm.contracts import ErrorClassification, LLMProvider, LLMResponse, StreamDelta
 from pico.observability.tracing import trace
-from pico.observability.usage.runtime import CallEfficiency
+
+if TYPE_CHECKING:
+    from pico.observability.usage.runtime import CallEfficiency
 
 
 class CallEfficiencyProvider(LLMProvider):

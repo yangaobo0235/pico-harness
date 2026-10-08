@@ -53,19 +53,19 @@ async def test_memory_skill_variants_use_fresh_runtime_processes(
     local_only = executions["user_memory_on_local_only"]
     full = executions["user_memory_on_local_plus_everos"]
 
-    assert memory_off.status is TrialStatus.TASK_FAILED
+    assert memory_off.status is TrialStatus.TASK_FAILED, memory_off.findings
     assert memory_off.metrics["memory.user_recall_calls"] == 0
     assert memory_off.metrics["memory.suppressed_user_recall_calls"] > 0
     assert memory_off.metrics["provider.memory_observed"] is False
     assert memory_off.metrics["provider.skill_observed"] is True
 
-    assert local_only.status is TrialStatus.TASK_FAILED
+    assert local_only.status is TrialStatus.TASK_FAILED, local_only.findings
     assert local_only.metrics["memory.user_recall_calls"] > 0
     assert local_only.metrics["provider.memory_observed"] is True
     assert local_only.metrics["provider.skill_observed"] is False
     assert local_only.metrics["skill.source_contribution"]["everos"] == 0
 
-    assert full.status is TrialStatus.PASSED
+    assert full.status is TrialStatus.PASSED, full.findings
     assert full.verification.state.value == "passed"
     assert full.metrics["runtime.fresh_process"] is True
     assert full.metrics["runtime.backend_quiescent"] is True

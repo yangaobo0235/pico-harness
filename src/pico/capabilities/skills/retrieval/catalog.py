@@ -79,7 +79,7 @@ class LocalSkillCatalog:
         self._local_pool = LocalPool(self._registry)
 
         # 后台 SKILL.md 监视器默认自动启动，使长生命周期消费方 ContextBuilder 能自动获取
-        # 对 ``<workspace>/skills/**/SKILL.md`` 的手动编辑。监视器运行在守护线程中，进程退出时自动清理；
+        # 对 ``<workspace>/skills/**/SKILL.md`` 的手动编辑。所有者在退出前调用 stop_file_watcher 关闭守护线程；
         # 缺少 ``watchfiles`` 时退化为空操作并记录一条 INFO 日志。
         #
         # 短生命周期消费方（单个 CLI 命令、为子 Agent 执行一次的 ``build_skills_summary()``）

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from rich.console import Console
 from typer.testing import CliRunner
 
 from pico.integrations.plugins import Contributes, DiscoveredPlugin, MemoryBackendContribution, PluginManifest, Source
@@ -17,6 +18,10 @@ from pico.integrations.plugins import Contributes, DiscoveredPlugin, MemoryBacke
 
 @pytest.fixture(autouse=True)
 def _installed_myna(monkeypatch: pytest.MonkeyPatch):
+    from pico.interfaces.cli.commands import plugins
+
+    # Console captures COLUMNS when constructed, before CliRunner applies env.
+    monkeypatch.setattr(plugins, "console", Console(width=200, color_system=None))
     module = types.ModuleType("myna.integrations.pico.backend")
     module.make_backend = lambda context: context
     monkeypatch.setitem(sys.modules, module.__name__, module)

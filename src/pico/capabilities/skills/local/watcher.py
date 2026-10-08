@@ -6,7 +6,7 @@ Watcher 监控 Workspace Skill Tree；``SKILL.md`` Add/Change/Disappear 时按 S
 Invalidation Hook。Watcher Roots 通过 ``__init__`` 传入。
 
 Design Notes：使用运行 ``watchfiles.watch()`` 的 **Daemon Thread**，Rust Iterator 默认约 1.6s Debounce；
-Daemon 在 Process Exit 自动清理，显式 :meth:`stop` 用于 Tests/Clean Shutdown。Scope 刻意 Workspace-only，
+所有者在 Process Exit 前显式调用 :meth:`stop`，避免原生监听线程与解释器退出竞争。Scope 刻意 Workspace-only，
 Builtin/External 是 Read-only Mirrors，Builtin 约可达 80K Files，Recursive Watch 会超过 Linux
 ``fs.inotify.max_user_watches``。``watchfiles`` 缺失时 Defensive `ImportError` 降级 Manual Invalidation。
 Start/Stop 与 Thread 内 Error 都是 **Best-effort**，失败返回 ``False`` 或记录后不让 Runtime 崩溃。

@@ -46,7 +46,7 @@ Python 模块和函数使用 `snake_case`，类使用 `PascalCase`。文件与�
 
 ## 分支与提交
 
-分支名围绕目标命名，例如 `feat/channel-filter`、`fix/session-save`。提交信息和 PR 标题使用 Conventional Commits：
+分支名围绕目标命名，例如 `feat/channel-filter`、`fix/session-save`。提交信息和 PR 标题使用英文 ASCII，遵循 Conventional Commits：
 
 ```text
 feat(tools): add a file search option

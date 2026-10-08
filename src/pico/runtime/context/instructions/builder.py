@@ -70,6 +70,10 @@ class ContextBuilder:
         # 而非使用真实墙上时钟，避免 30 天伪时钟模拟中混淆真实时间与模拟时间。
         self._now_fn = now_fn or datetime.now
 
+    def close(self) -> None:
+        """Stop the owned skill watcher before the interpreter shuts down."""
+        self.skills.stop_file_watcher()
+
     def build_system_prompt(
         self,
         selected_skills: list[SkillMeta] | None = None,

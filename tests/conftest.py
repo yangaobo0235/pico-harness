@@ -19,7 +19,9 @@ def tmp_path(tmp_path_factory, request):
     """Keep nested benchmark paths below Windows' legacy path-length limit."""
     if os.name == "nt":
         with tempfile.TemporaryDirectory(prefix="pt-", ignore_cleanup_errors=True) as directory:
-            yield Path(directory)
+            # Windows TEMP can use an 8.3 alias while cwd and subprocesses
+            # return its long name. Give all tests one canonical spelling.
+            yield Path(directory).resolve()
     else:
         suffix = hashlib.sha256(request.node.nodeid.encode()).hexdigest()[:12]
         yield tmp_path_factory.mktemp(f"t-{suffix}")

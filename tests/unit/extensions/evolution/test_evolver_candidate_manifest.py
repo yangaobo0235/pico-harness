@@ -277,9 +277,10 @@ def test_path_guard_rejects_traversal_and_absolute_paths(target: str) -> None:
 
 
 def test_path_guard_rejects_symlink_components(require_symlinks, tmp_path: Path) -> None:
-    (tmp_path / "pico").mkdir()
+    resources = tmp_path / "src" / "pico" / "resources"
+    resources.mkdir(parents=True)
     (tmp_path / "outside").mkdir()
-    (tmp_path / "pico" / "templates").symlink_to(tmp_path / "outside", target_is_directory=True)
+    (resources / "templates").symlink_to(tmp_path / "outside", target_is_directory=True)
     target = "src/pico/resources/templates/AGENTS.md"
 
     assert check_patch_paths([target], repo_root=tmp_path) == [target]

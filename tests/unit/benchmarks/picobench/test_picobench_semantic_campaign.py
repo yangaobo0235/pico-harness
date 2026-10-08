@@ -118,6 +118,7 @@ def test_semantic_suite_weights_match_executed_runtime_config() -> None:
 @pytest.mark.asyncio
 async def test_semantic_run_requires_exact_paid_approval(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     monkeypatch.setattr(
         "benchmarks.picobench.semantic_campaign._load_embedding_settings",
@@ -133,7 +134,7 @@ async def test_semantic_run_requires_exact_paid_approval(
     )
 
     with pytest.raises(SemanticCampaignError, match="paid approval"):
-        await run_semantic_track("calibration")
+        await run_semantic_track("calibration", output_root=tmp_path)
 
 
 @pytest.mark.asyncio

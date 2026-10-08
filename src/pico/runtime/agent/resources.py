@@ -217,7 +217,7 @@ async def close_resources(self) -> None:
 
     `_close_lock` 让并发关闭串行化，`_closed` 使重复调用成为 no-op。首次关闭先执行
     `begin_close`，同步封住新个性化任务并取消旧任务；随后用 `gather(...,
-    return_exceptions=True)` 等待其完成，最后调用 `close_mcp` 释放 MCP 与 Sandbox。
+    return_exceptions=True)` 等待其完成，再释放 MCP、Sandbox 和技能目录监听器。
     只有这些步骤结束后才把实例标记为已关闭，避免 cleanup 尚未完成就对外宣称终止。
     """
     async with self._close_lock:
@@ -227,7 +227,10 @@ async def close_resources(self) -> None:
         tasks = tuple(self._personalization_tasks)
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
-        await self.close_mcp()
+        try:
+            await self.close_mcp()
+        finally:
+            await asyncio.to_thread(self.context.close)
         self._closed = True
 
 
