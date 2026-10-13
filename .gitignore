@@ -1,0 +1,41 @@
+.DS_Store
+.env
+*.env
+key.env
+
+.venv/
+venv/
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+dist/
+build/
+
+.pico/
+*.tmp
+*.temp
+.mini-pico/
+.worktrees/
+logs/
+artifacts/
+release/
+readme_intro_locked/
+
+# IDE 与编辑器本地状态
+.idea/
+.vscode/
+
+# 原始评测输出与本地运行数据不进入发布树；冻结的任务输入与结果摘要保留。
+benchmarks/**/output/
+benchmarks/**/data/
+
+# 本地草稿，不属于文档树
+docs/**/drafts/

@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a capability or a behavior change
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and target
+      description: What cannot be done today, and what the finished behavior looks like
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected modules
+      description: Which layer or module would own this, and why it belongs there
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: Commands, tests or benchmark tracks that would show this works
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Tradeoffs and alternatives
+      description: Cost, security or reproducibility consequences, and alternatives considered

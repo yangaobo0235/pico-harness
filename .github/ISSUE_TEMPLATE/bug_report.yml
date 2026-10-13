@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a reproducible problem
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: Environment and version
+      description: OS, Pico and Python versions, plus the provider in use
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Relevant run artifacts
+      description: task_state.json, trace.jsonl or report.json fragments with credentials removed
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Remove credentials, personal data and private repository paths

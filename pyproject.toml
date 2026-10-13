@@ -1,0 +1,99 @@
+[project]
+name = "pico"
+version = "0.1.0"
+description = "Small local coding agent for DeepSeek, OpenAI-compatible, Anthropic-compatible, and Ollama models"
+requires-python = ">=3.12,<3.13"
+authors = [
+    {name = "Hackerismydream"}
+]
+keywords = ["ai", "agent", "cli", "terminal", "coding-agent", "context-management"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+]
+
+# 运行时只使用标准库：Provider 走 urllib，渲染走文本排版，持久化走 json。
+# 保持零依赖是有意的——一次 `uv sync` 不应该成为在别的仓库里试用 pico 的前置成本。
+dependencies = []
+
+[project.scripts]
+pico = "pico.interfaces.cli.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pico"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/", "scripts/", "examples/", "benchmarks/",
+    "pyproject.toml", "uv.lock", "README.md", "CONTRIBUTING.md",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-timeout>=2.4,<3",
+    "pytest-xdist>=3.8,<4",
+    "pre-commit>=4.6.0",
+    "ruff>=0.15.11,<0.16",
+    # 评测工件的 captured_at 使用 IANA 时区名；Windows 没有系统 tz 数据库，
+    # 只靠 `zoneinfo` 会在 Asia/Shanghai 上抛 ZoneInfoNotFoundError。它属于工程与
+    # 评测环境依赖，不进运行时依赖，产品代码不需要时区库。
+    "tzdata>=2024.1; sys_platform == 'win32'",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["benchmarks/results"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "S101", "S105", "S106", "S107", "S506", "S605", "S607"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# 测试约定：允许断言、夹具凭据、测试命名、Fixture 重定义与延迟导入。
+# 测试和产品代码都执行导入排序与格式检查。
+"tests/**" = ["E402", "E741", "F811", "F841", "N802", "N805", "N806", "N817", "N818", "S101", "S105", "S106", "S107", "S607"]
+
+# 内置工具按设计使用 Shell 与固定名称的搜索程序（S605），并保留用于校验内部
+# 不变量的断言（S101）。
+"src/pico/capabilities/tools/builtin/shell.py" = ["S605", "S607"]
+"src/pico/capabilities/tools/builtin/file_search.py" = ["S607"]
+"src/pico/runtime/workspace/snapshot.py" = ["S607"]
+
+# 记忆晋升的拒绝标签与脱敏变量名常量都是结果标记和配置键名，不是凭据（S105）。
+"src/pico/capabilities/memory/promotion.py" = ["S105"]
+"src/pico/config/providers.py" = ["S105"]
+
+# 评测与实验按设计驱动 git/benchmark 子进程，并允许结果标签看起来像凭据（S105）。
+"src/pico/extensions/evaluation/**" = ["S607"]
+"src/pico/extensions/evaluation/metrics/**" = ["S101", "S105"]
+
+# scripts/：开发与工程工具，允许使用部分路径子进程和断言。
+"scripts/**" = ["S101", "S607"]
+
+# 示例项目独立成包，保持它可以被直接复制运行。
+"examples/**" = ["S101"]
+
+[tool.pytest.ini_options]
+timeout = 120
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = [
+    "-m",
+    "not (real_llm or external_runtime or e2e or performance)",
+]
+markers = [
+    "performance: timing-sensitive experiments; run separately without parallel workers",
+    "real_llm: calls a live model endpoint and may incur cost; opt-in",
+    "external_runtime: requires a runtime or executable outside the Python test environment; opt-in",
+    "e2e: spawns a real subprocess through the CLI; opt-in",
+]
