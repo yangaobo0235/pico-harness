@@ -1,0 +1,66 @@
+[project]
+name = "mini-pico"
+version = "0.1.0"
+description = "Teaching-sized Pico agent harness"
+requires-python = ">=3.12,<3.13"
+authors = [
+    {name = "Hackerismydream"}
+]
+keywords = ["ai", "agent", "cli", "coding-agent", "teaching-example"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+]
+
+# 运行时只使用标准库：模型是脚本化的假客户端，持久化走 json，搜索走 subprocess。
+# 和主项目保持同一条约定——把整个目录复制走也应该能直接跑，不引入任何安装成本。
+dependencies = []
+
+[project.scripts]
+mini-pico = "mini_pico.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mini_pico"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-timeout>=2.4,<3",
+    "pytest-xdist>=3.8,<4",
+    "ruff>=0.15.11,<0.16",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "S101", "S105", "S106", "S107", "S506", "S605", "S607"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# 测试约定：允许断言、夹具凭据、测试命名、Fixture 重定义与延迟导入。
+# 测试和产品代码都执行导入排序与格式检查。
+"tests/**" = ["E402", "E741", "F811", "F841", "N802", "N805", "N806", "N817", "N818", "S101", "S105", "S106", "S107", "S607"]
+
+# 搜索工具按设计调用固定名称的 ripgrep（S607），找不到时退回 Python 侧扫描；
+# 教学实现保留断言写法，读者可以直接把测试当例子读。
+"mini_pico/tools.py" = ["S607"]
+
+[tool.pytest.ini_options]
+timeout = 120
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "-m",
+    "not (real_llm or external_runtime)",
+]
+markers = [
+    "real_llm: calls a live model endpoint and may incur cost; opt-in",
+    "external_runtime: requires a runtime or executable outside the Python test environment; opt-in",
+]
