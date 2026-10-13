@@ -7,13 +7,12 @@ import argparse
 import json
 from pathlib import Path
 
+from pico.extensions.evaluation.metrics.provider_experiments import run_provider_experiments
 from pico.extensions.evaluation.metrics.reporting import (
     collect_resume_metrics,
     render_large_scale_experiment_report,
     render_resume_metrics_markdown,
 )
-
-from pico.extensions.evaluation.metrics.provider_experiments import run_provider_experiments
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
