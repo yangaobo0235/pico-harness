@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from pico.extensions.evaluation.artifacts import _current_locale
 from pico.extensions.evaluation.benchmark import load_benchmark, summarize_rows
 from pico.extensions.evaluation.engine import (
     BenchmarkEvaluator,
@@ -146,7 +147,11 @@ def test_run_fixed_benchmark_reports_metadata_and_success_definition(tmp_path: P
         "max_new_tokens": 64,
     }
     assert reproducibility["timezone"] == "Asia/Shanghai"
-    assert reproducibility["locale"] == "C.UTF-8"
+    # `locale` 只说明这份工件是在什么 locale 下采集的，取值随平台变化（Linux 上常见
+    # `C.UTF-8`，Windows 上是 `English_United States.1252` 这类名字），因此断言它确实记录了
+    # 当前 locale，而不是锁死某个具体名字。
+    assert reproducibility["locale"] == _current_locale()
+    assert reproducibility["locale"]
 
     for row in artifact["rows"]:
         assert not row["fixture_copy_relpath"].startswith("/")

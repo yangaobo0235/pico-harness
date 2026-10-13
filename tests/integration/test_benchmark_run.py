@@ -44,7 +44,9 @@ def test_benchmark_evaluator_applies_allowed_tools_to_runtime_prompt(tmp_path: P
                         "allowed_tools": ["read_file"],
                         "step_budget": 1,
                         "expected_artifact": "README.md",
-                        "verifier": "python -c 'import pathlib; assert pathlib.Path(\"README.md\").exists()'",
+                        # 与冻结任务卡同一种写法：外层双引号交给 shell，内层单引号留给 Python，
+                        # 这样 cmd.exe 与 POSIX shell 都能把 `-c` 的参数原样送到解释器。
+                        "verifier": "python3 -c \"import pathlib; assert pathlib.Path('README.md').exists()\"",
                         "category": "contract",
                     }
                 ],
