@@ -10,20 +10,20 @@
 
 // 必须首先导入。在 Chalk/supports-color 初始化前设置 FORCE_COLOR，应用所有
 // PICO_TUI_COLOR / NO_COLOR 覆盖。
-import './lib/colorTier.js'
+import './platform/colorTier.js'
 
 import type { FrameEvent } from '@hermes/ink'
 
 import { activeColorTier } from '@hermes/ink'
 
-import { cleanupClipboardImages, cleanupStaleClipboardImages } from './lib/clipboard.js'
-import { setupGracefulExit } from './lib/gracefulExit.js'
-import { formatBytes, type HeapDumpResult, performHeapDump } from './lib/memory.js'
-import { type MemorySnapshot, startMemoryMonitor } from './lib/memoryMonitor.js'
-import { renderColorPreview, renderColorSwatches } from './lib/printColors.js'
-import { resetTerminalModes } from './lib/terminalModes.js'
-import { DEFAULT_THEME } from './theme.js'
+import { cleanupClipboardImages, cleanupStaleClipboardImages } from './platform/clipboard.js'
+import { setupGracefulExit } from './platform/gracefulExit.js'
+import { renderColorPreview, renderColorSwatches } from './platform/printColors.js'
+import { resetTerminalModes } from './platform/terminalModes.js'
+import { formatBytes, type HeapDumpResult, performHeapDump } from './shared/lib/memory.js'
+import { type MemorySnapshot, startMemoryMonitor } from './shared/lib/memoryMonitor.js'
 import { TuiRpcClient } from './tuiRpcClient.js'
+import { DEFAULT_THEME } from './ui/theme.js'
 
 cleanupStaleClipboardImages()
 process.on('exit', cleanupClipboardImages)
@@ -113,8 +113,8 @@ process.on('beforeExit', () => stopMemoryMonitor())
 const [ink, { App }, { logFrameEvent }, { trackFrame }] = await Promise.all([
   import('@hermes/ink'),
   import('./app.js'),
-  import('./lib/perfPane.js'),
-  import('./lib/fpsStore.js')
+  import('./shared/lib/perfPane.js'),
+  import('./shared/lib/fpsStore.js')
 ])
 
 // 两个使用方的环境开关关闭时均为 undefined；至少一个开启时才挂接 onFrame，使 Ink 默认跳过计时。

@@ -8,11 +8,11 @@ import React from 'react'
 import { PassThrough } from 'stream'
 import { describe, expect, it } from 'vitest'
 
-import { MessageLine } from '../../../src/components/messageLine.js'
-import { toTranscriptMessages } from '../../../src/domain/messages.js'
-import { upsert } from '../../../src/lib/messages.js'
-import { stripAnsi } from '../../../src/lib/text.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { MessageLine } from '../../../src/features/chat/components/messageLine.js'
+import { toTranscriptMessages } from '../../../src/shared/domain/messages.js'
+import { upsert } from '../../../src/shared/lib/messages.js'
+import { stripAnsi } from '../../../src/shared/lib/text.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 describe('toTranscriptMessages', () => {
   it('preserves assistant tool-call rows so resume does not drop prior turns', () => {

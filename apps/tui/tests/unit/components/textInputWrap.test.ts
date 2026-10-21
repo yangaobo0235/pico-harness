@@ -5,8 +5,8 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { offsetFromPosition } from '../../../src/components/textInput.js'
-import { composerPromptWidth, cursorLayout, inputVisualHeight, stableComposerColumns } from '../../../src/lib/inputMetrics.js'
+import { composerPromptWidth, cursorLayout, inputVisualHeight, stableComposerColumns } from '../../../src/shared/lib/inputMetrics.js'
+import { offsetFromPosition } from '../../../src/ui/textInput.js'
 
 describe('cursorLayout — word-wrap parity with wrap-ansi', () => {
   it('places cursor mid-line at its column', () => {

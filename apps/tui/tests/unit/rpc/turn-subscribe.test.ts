@@ -15,10 +15,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { TurnEvent, TurnSendParams, TurnSendResult, TurnSubscribeParams } from '../../../src/rpc/index.js'
 
-import { createChatStream, type ChatStreamRpcClient } from '../../../src/app/chatStream.js'
-import { turnController } from '../../../src/app/turnController.js'
-import { getTurnState, resetTurnState } from '../../../src/app/turnStore.js'
 import { getUiState, patchUiState, resetUiState } from '../../../src/app/uiStore.js'
+import { createChatStream, type ChatStreamRpcClient } from '../../../src/features/chat/model/chatStream.js'
+import { turnController } from '../../../src/features/chat/model/turnController.js'
+import { getTurnState, resetTurnState } from '../../../src/features/chat/model/turnStore.js'
 
 type FakeUnsubscribe = () => Promise<void>
 

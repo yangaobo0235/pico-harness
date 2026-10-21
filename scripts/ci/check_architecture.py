@@ -8,7 +8,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "src" / "pico"
 RETIRED = ("pico.agent", "pico.cli", "pico.spine", "pico.memory_engine", "pico.context_engine", "pico.tui_rpc")
-PROTECTED = {"runtime", "capabilities", "integrations", "observability", "security", "config", "extensions"}
+PROTECTED = {
+    "application",
+    "runtime",
+    "capabilities",
+    "integrations",
+    "observability",
+    "security",
+    "config",
+    "extensions",
+}
 
 
 def runtime_imports(tree: ast.AST, package: str):
@@ -49,6 +58,8 @@ def check_architecture(source: Path = SOURCE) -> list[str]:
                 reason = "retired module path"
             elif group in PROTECTED and module.startswith(("pico.interfaces", "pico.bootstrap")):
                 reason = "execution module imports an entry point or composition root"
+            elif group in PROTECTED - {"application"} and module.startswith("pico.application"):
+                reason = "execution module imports an application operation"
             elif group in {"contracts", "shared"} and module.startswith("pico."):
                 target = module.split(".")[1]
                 if target not in {group, "shared"}:

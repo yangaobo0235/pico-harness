@@ -8,9 +8,9 @@ import { describe, expect, it } from 'vitest'
 
 import type { TodoItem } from '../../../src/types.js'
 
-import { TodoPanel } from '../../../src/components/todoPanel.js'
-import { stripAnsi } from '../../../src/lib/text.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { TodoPanel } from '../../../src/features/chat/components/todoPanel.js'
+import { stripAnsi } from '../../../src/shared/lib/text.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 const frameOf = (node: React.ReactElement): string => stripAnsi(render(node).lastFrame() ?? '')
 

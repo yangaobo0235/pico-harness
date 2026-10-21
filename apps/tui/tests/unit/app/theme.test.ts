@@ -28,7 +28,7 @@ async function importThemeWithEnv(env: Partial<Record<(typeof RELEVANT_ENV)[numb
 
   vi.resetModules()
 
-  return import('../../../src/theme.js')
+  return import('../../../src/ui/theme.js')
 }
 
 async function importThemeWithCleanEnv() {

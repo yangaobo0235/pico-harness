@@ -5,14 +5,14 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { FACES } from '../../../src/content/faces.js'
-import { HOTKEYS } from '../../../src/content/hotkeys.js'
-import { PLACEHOLDERS } from '../../../src/content/placeholders.js'
-import { TOOL_VERBS, VERBS } from '../../../src/content/verbs.js'
-import { ROLE } from '../../../src/domain/roles.js'
-import { ZERO } from '../../../src/domain/usage.js'
-import { INTERPOLATION_RE } from '../../../src/protocol/interpolation.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { FACES } from '../../../src/shared/content/faces.js'
+import { HOTKEYS } from '../../../src/shared/content/hotkeys.js'
+import { PLACEHOLDERS } from '../../../src/shared/content/placeholders.js'
+import { TOOL_VERBS, VERBS } from '../../../src/shared/content/verbs.js'
+import { ROLE } from '../../../src/shared/domain/roles.js'
+import { ZERO } from '../../../src/shared/domain/usage.js'
+import { INTERPOLATION_RE } from '../../../src/shared/protocol/interpolation.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 describe('constants', () => {
   it('ZERO', () => expect(ZERO).toEqual({ calls: 0, input: 0, output: 0, total: 0 }))

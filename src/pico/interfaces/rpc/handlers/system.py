@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 # 版本定义
 # ----------------------------------------------------------------------------
 # server_version：IPC 桥接协议的实现版本，发布新的线上协议兼容版本时递增。
-# schema_version：与 `apps/tui/rpc-schema/openrpc.json` 中的 OpenRPC `info.version` 一致。
+# schema_version：与 `contracts/rpc/openrpc.json` 中的 OpenRPC `info.version` 一致。
 # pico_version：从已安装元数据读取的 Pico 发行版本。
 SERVER_VERSION = "0.1.0"
 SCHEMA_VERSION = "0.1.0"

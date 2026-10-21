@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { shouldSetVirtualClamp } from '../../../src/hooks/useVirtualHistory.js'
+import { shouldSetVirtualClamp } from '../../../src/shared/hooks/useVirtualHistory.js'
 
 describe('virtual history clamp bounds', () => {
   it('does not clamp sticky live tail content', () => {

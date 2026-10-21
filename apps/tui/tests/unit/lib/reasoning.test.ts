@@ -5,8 +5,8 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { hasReasoningTag, splitReasoning } from '../../../src/lib/reasoning.js'
-import { cleanThinkingText } from '../../../src/lib/text.js'
+import { hasReasoningTag, splitReasoning } from '../../../src/shared/lib/reasoning.js'
+import { cleanThinkingText } from '../../../src/shared/lib/text.js'
 
 describe('splitReasoning', () => {
   it('extracts <think>…</think> and strips it from text', () => {

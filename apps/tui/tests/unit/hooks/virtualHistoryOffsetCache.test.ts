@@ -8,7 +8,7 @@ import React, { useLayoutEffect, useRef } from 'react'
 import { PassThrough } from 'stream'
 import { describe, expect, it } from 'vitest'
 
-import { useVirtualHistory } from '../../../src/hooks/useVirtualHistory.js'
+import { useVirtualHistory } from '../../../src/shared/hooks/useVirtualHistory.js'
 
 interface Item {
   height: number

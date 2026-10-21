@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { lineNav } from '../../../src/components/textInput.js'
+import { lineNav } from '../../../src/ui/textInput.js'
 
 describe('lineNav', () => {
   it('returns null for single-line input (up)', () => {

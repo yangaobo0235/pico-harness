@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { asRpcResult, rpcErrorMessage } from '../../../src/lib/rpc.js'
+import { asRpcResult, rpcErrorMessage } from '../../../src/shared/lib/rpc.js'
 
 describe('asRpcResult', () => {
   it('keeps plain object payloads', () => {

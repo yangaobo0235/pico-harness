@@ -12,7 +12,7 @@ import {
   patchTurnState,
   resetTurnState,
   toggleTodoCollapsed
-} from '../../../src/app/turnStore.js'
+} from '../../../src/features/chat/model/turnStore.js'
 
 describe('turnStore live progress helpers', () => {
   beforeEach(() => resetTurnState())

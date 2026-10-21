@@ -60,6 +60,8 @@ _REQUIRED_FILES = {
     "pico/resources/templates/SOUL.md",
     "pico/resources/tracing_viewer/server.js",
     "pico/resources/tracing_viewer/ui/app.js",
+    "pico/resources/tracing_viewer/ui/index.html",
+    "pico/resources/tracing_viewer/ui/app.css",
 }
 _RETIRED_MEMORY_DEPENDENCIES = ("codecairn", "everalgo", "everos")
 
@@ -720,6 +722,8 @@ def _run(
             env=env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
             timeout=timeout,
         )
@@ -831,15 +835,19 @@ def _build_artifacts(
     env: dict[str, str],
 ) -> tuple[Path, Path]:
     log_dir = output_root / "logs"
+    # Windows CreateProcess does not resolve the bare name to npm.cmd.
+    npm = shutil.which("npm", path=env.get("PATH"))
+    if npm is None:
+        raise VerificationError("npm is required to build frontend distribution resources")
     _run(
-        ["npm", "ci", "--prefix", "apps/tui"],
+        [npm, "ci"],
         cwd=source_root,
         log_dir=log_dir,
         records=records,
         env=env,
     )
     _run(
-        ["npm", "run", "build", "--prefix", "apps/tui"],
+        [npm, "run", "build"],
         cwd=source_root,
         log_dir=log_dir,
         records=records,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { padVerb, VERB_PAD_LEN } from '../../../src/components/appChrome.js'
-import { VERBS } from '../../../src/content/verbs.js'
+import { padVerb, VERB_PAD_LEN } from '../../../src/app/components/appChrome.js'
+import { VERBS } from '../../../src/shared/content/verbs.js'
 
 describe('FaceTicker verb padding', () => {
   it('pads every verb to the same width', () => {

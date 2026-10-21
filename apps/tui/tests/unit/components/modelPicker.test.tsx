@@ -9,8 +9,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { ModelOptionProvider } from '../../../src/gatewayTypes.js'
 
-import { ModelPicker } from '../../../src/components/modelPicker.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { ModelPicker } from '../../../src/features/models/components/modelPicker.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 

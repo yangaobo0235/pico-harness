@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { appendTranscriptMessage } from '../../../src/lib/messages.js'
+import { appendTranscriptMessage } from '../../../src/shared/lib/messages.js'
 
 describe('appendTranscriptMessage', () => {
   it('merges adjacent tool-only shelves into one transcript row', () => {

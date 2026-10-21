@@ -6,9 +6,9 @@ import { render } from 'ink-testing-library'
 import React from 'react'
 import { describe, expect, it } from 'vitest'
 
-import { picoLogo, picoLogoWord, PICO_WORD_WIDTH } from '../../../src/banner.js'
-import { Branding, formatProvider, StartupLoader } from '../../../src/components/branding.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { picoLogo, picoLogoWord, PICO_WORD_WIDTH } from '../../../src/ui/banner.js'
+import { Branding, formatProvider, StartupLoader } from '../../../src/ui/branding.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 describe('Branding', () => {
   it('renders without throwing when invoked with no props', () => {

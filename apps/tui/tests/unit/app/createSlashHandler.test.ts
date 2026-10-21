@@ -4,9 +4,9 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createSlashHandler } from '../../../src/app/createSlashHandler.js'
-import { getOverlayState, resetOverlayState } from '../../../src/app/overlayStore.js'
 import { getUiState, patchUiState, resetUiState } from '../../../src/app/uiStore.js'
+import { createSlashHandler } from '../../../src/features/commands/createSlashHandler.js'
+import { getOverlayState, resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
 
 const buildCtx = () => ({
   composer: {

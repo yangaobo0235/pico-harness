@@ -1,10 +1,9 @@
 // 仓库 TypeScript/Node 包共享的扁平配置基线，不包含 React。
 //
-// 本文件位于没有 node_modules 的仓库根目录。ESM 从模块自身位置向上解析裸导入，
-// 因此根文件导入 'eslint-plugin-*' 会解析失败。为避免这一点，基线采用工厂形式：
-// 每个包从自身 node_modules 解析并导入插件，再将其传入；基线本身不导入插件。
+// 由各工作区传入插件，避免共享配置绑定某一应用的插件解析位置。
+// 浏览器与终端复用 TS 基线，各自追加环境、React 和展示风格规则。
 
-export default function base({ js, tsPlugin, tsParser, unusedImports, perfectionist }) {
+export function typescriptBase({ js, tsPlugin, tsParser }) {
   return [
     js.configs.recommended,
     {
@@ -14,19 +13,28 @@ export default function base({ js, tsPlugin, tsParser, unusedImports, perfection
         sourceType: 'module',
         parser: tsParser,
         parserOptions: {
-          ecmaFeatures: { jsx: true },
-        },
+          ecmaFeatures: { jsx: true }
+        }
       },
       plugins: {
-        '@typescript-eslint': tsPlugin,
-        'unused-imports': unusedImports,
-        perfectionist,
+        '@typescript-eslint': tsPlugin
       },
       rules: {
-        ...tsPlugin.configs['flat/recommended'].reduce(
-          (acc, cfg) => ({ ...acc, ...(cfg.rules ?? {}) }),
-          {},
-        ),
+        ...tsPlugin.configs['flat/recommended'].reduce((acc, cfg) => ({ ...acc, ...(cfg.rules ?? {}) }), {}),
+        'no-undef': 'off',
+        'no-unused-vars': 'off'
+      }
+    }
+  ]
+}
+
+export default function base({ js, tsPlugin, tsParser, unusedImports, perfectionist }) {
+  return [
+    ...typescriptBase({ js, tsPlugin, tsParser }),
+    {
+      files: ['**/*.{ts,tsx}'],
+      plugins: { 'unused-imports': unusedImports, perfectionist },
+      rules: {
         '@typescript-eslint/consistent-type-imports': 'error',
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-unused-vars': 'off',
@@ -37,8 +45,8 @@ export default function base({ js, tsPlugin, tsParser, unusedImports, perfection
         'no-unused-expressions': 'off',
         '@typescript-eslint/no-unused-expressions': 'warn',
         'no-undef': 'off',
-        'no-unused-vars': 'off',
-      },
-    },
+        'no-unused-vars': 'off'
+      }
+    }
   ]
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { shouldPassThroughToGlobalHandler } from '../../../src/components/textInput.js'
+import { shouldPassThroughToGlobalHandler } from '../../../src/ui/textInput.js'
 
 const key = (overrides: Record<string, unknown> = {}) => ({ ctrl: false, meta: false, ...overrides }) as any
 

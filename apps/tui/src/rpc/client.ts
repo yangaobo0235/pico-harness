@@ -13,14 +13,13 @@
 // 错误映射：传入 JSON-RPC 错误帧通过 `errors.ts::rpcErrorFromFrame` 转为带类型的
 // `RpcError` 子类。
 
+import type { EventNotificationParams, JsonRpcErrorResponse, JsonRpcRequest, JsonRpcResponse } from '@pico/contracts/rpc'
 import type { Socket } from 'node:net'
 
+import { isJsonRpcError } from '@pico/contracts/rpc'
 import { createConnection } from 'node:net'
 
-import type { EventNotificationParams, JsonRpcErrorResponse, JsonRpcRequest, JsonRpcResponse } from './generated.js'
-
 import { rpcErrorFromFrame } from './errors.js'
-import { isJsonRpcError } from './generated.js'
 import { SubscriptionRegistry } from './subscriptions.js'
 
 const MAX_FRAME_BYTES = 1024 * 1024 // 1 MiB（规范第 2.5 节）

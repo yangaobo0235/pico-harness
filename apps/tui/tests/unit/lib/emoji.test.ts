@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { ensureEmojiPresentation } from '../../../src/lib/emoji.js'
+import { ensureEmojiPresentation } from '../../../src/shared/lib/emoji.js'
 
 const VS16 = '\uFE0F'
 

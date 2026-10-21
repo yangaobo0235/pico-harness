@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { BOX_CLOSE, BOX_OPEN, BOX_RE, texToUnicode } from '../../../src/lib/mathUnicode.js'
+import { BOX_CLOSE, BOX_OPEN, BOX_RE, texToUnicode } from '../../../src/shared/lib/mathUnicode.js'
 
 const stripBox = (s: string) => s.replace(BOX_RE, '$1')
 

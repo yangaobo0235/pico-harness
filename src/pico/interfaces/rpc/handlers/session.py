@@ -34,13 +34,13 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from loguru import logger
 
+from pico.application.sessions import export_session
 from pico.config.loader import load_config
 from pico.interfaces.rpc.errors import SessionNotFoundError, TurnInProgressError
 from pico.interfaces.rpc.handlers import turn as turn_module
 from pico.interfaces.rpc.handlers.image import clear_pending_images
 from pico.interfaces.rpc.handlers.system import _pico_version
 from pico.observability.usage.pricing import resolve_context_window
-from pico.runtime.sessions.export import default_export_path, verify_export, write_portable_export
 from pico.runtime.sessions.service import SessionManager, new_chat_id
 
 if TYPE_CHECKING:
@@ -671,27 +671,15 @@ async def session_export(
     agent_loop = _safe_invoke_factory(agent_loop_factory)
     config = load_config()
     mgr = _manager_for(agent_loop, config)
-    res = mgr.resolve_key(value)
-    if res.status == "ambiguous":
-        return {
-            "exported": False,
-            "path": None,
-            "reason": "ambiguous",
-            "candidates": list(res.candidates),
-        }
-    session = mgr.peek(res.key) if res.status == "resolved" else None
-    if session is None:
-        return {"exported": False, "path": None, "reason": "not_found"}
-    dest = default_export_path(mgr.workspace, res.key)
-    try:
-        written = write_portable_export(session, dest)
-    except OSError:
-        logger.warning("session.export: failed to write export for {}", res.key)
-        return {"exported": False, "path": None, "reason": "write_failed"}
-    if not verify_export(written):
-        logger.warning("session.export: verification failed for {}", res.key)
-        return {"exported": False, "path": str(written), "reason": "verification_failed"}
-    return {"exported": True, "path": str(written)}
+    result = export_session(mgr, value)
+    response = {"exported": result.status == "exported", "path": str(result.path) if result.path else None}
+    if result.status != "exported":
+        response["reason"] = result.status
+    if result.status == "ambiguous":
+        response["candidates"] = list(result.candidates)
+    if result.status in {"write_failed", "verification_failed"}:
+        logger.warning("session.export: {} for {}", result.status, value)
+    return response
 
 
 def register_session_methods(

@@ -9,12 +9,12 @@ import type { GatewayEventHandlerContext } from './interfaces.js'
 
 import { STARTUP_IMAGE, STARTUP_QUERY } from '../config/env.js'
 import { STREAM_BATCH_MS } from '../config/timing.js'
-import { buildSetupRequiredSections, SETUP_REQUIRED_TITLE } from '../content/setup.js'
-import { mergeUsage } from '../domain/usage.js'
-import { rpcErrorMessage } from '../lib/rpc.js'
-import { formatToolCall, stripAnsi } from '../lib/text.js'
-import { patchOverlayState } from './overlayStore.js'
-import { turnController } from './turnController.js'
+import { turnController } from '../features/chat/model/turnController.js'
+import { patchOverlayState } from '../features/interaction/model/overlayStore.js'
+import { buildSetupRequiredSections, SETUP_REQUIRED_TITLE } from '../shared/content/setup.js'
+import { mergeUsage } from '../shared/domain/usage.js'
+import { rpcErrorMessage } from '../shared/lib/rpc.js'
+import { formatToolCall, stripAnsi } from '../shared/lib/text.js'
 import { applySkinTheme, getUiState, patchUiState } from './uiStore.js'
 
 const NO_PROVIDER_RE = /\bNo (?:LLM|inference) provider configured\b/i

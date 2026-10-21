@@ -1,7 +1,7 @@
 """实现探测 provider 配置状态的 ``setup.status`` RPC handler。
 
-契约来自 ``docs/openspec/changes/tui-ipc-bridge/specs/tui-ipc.md §3.9`` 与
-``design.md §3a.1``。它存在的原因是 hermes fork-import 的
+线协议见 ``contracts/rpc/openrpc.json``，维护约定见 ``docs/开发/扩展开发.md``。
+它存在的原因是 hermes fork-import 的
 ``useSessionLifecycle.ts:127,206`` 和 ``setupHandoff.ts:43`` 会在 app boot 时硬调用
 ``setup.status``；若返回 ``{provider_configured: false}``，UI 会把用户停在 *Setup
 required* panel，并拒绝创建 Session，因此 v0.1 也必须遵守该 contract。

@@ -10,7 +10,7 @@ import {
   getViewportSnapshot,
   scrollbarSnapshotKey,
   viewportSnapshotKey
-} from '../../../src/lib/viewportStore.js'
+} from '../../../src/shared/lib/viewportStore.js'
 
 describe('viewportStore', () => {
   it('normalizes absent scroll handles', () => {

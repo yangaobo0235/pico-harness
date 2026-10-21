@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { applyColorOverride, parseColorOverride } from '../../../src/lib/colorTier.js'
+import { applyColorOverride, parseColorOverride } from '../../../src/platform/colorTier.js'
 
 describe('parseColorOverride', () => {
   it('maps named + numeric tiers', () => {

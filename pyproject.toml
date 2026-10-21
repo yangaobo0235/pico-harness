@@ -91,7 +91,10 @@ path = "hatch_build.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/", "apps/", "scripts/install/", "hatch_build.py",
+    "src/", "apps/", "contracts/", "packages/", "scripts/install/", "hatch_build.py",
+    "scripts/ci/check_typescript_architecture.mjs", "scripts/ci/check_typescript_architecture.test.mjs",
+    "package.json", "package-lock.json", "tsconfig.base.json", "eslint.base.mjs",
+    "prettier.config.mjs",
     "pyproject.toml", "uv.lock", "README.md", "LICENSE", "LICENSES/", "NOTICES.md",
 ]
 

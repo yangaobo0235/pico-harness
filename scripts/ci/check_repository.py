@@ -8,8 +8,20 @@ import subprocess
 from pathlib import Path
 from typing import Iterable
 
-ALLOWED_ROOT_DIRECTORIES = {"LICENSES", "apps", "benchmarks", "docs", "examples", "scripts", "src", "tests"}
+ALLOWED_ROOT_DIRECTORIES = {
+    "LICENSES",
+    "apps",
+    "benchmarks",
+    "contracts",
+    "docs",
+    "examples",
+    "packages",
+    "scripts",
+    "src",
+    "tests",
+}
 ALLOWED_ROOT_FILES = {
+    "AGENTS.md",
     ".gitattributes",
     ".gitignore",
     ".pre-commit-config.yaml",
@@ -25,6 +37,7 @@ ALLOWED_ROOT_FILES = {
     "package-lock.json",
     "package.json",
     "prettier.config.mjs",
+    "tsconfig.base.json",
     "pyproject.toml",
     "uv.lock",
 }
@@ -38,11 +51,10 @@ ALLOWED_GITHUB_FILES = {
 }
 FORBIDDEN_PATHS = {"CONTEXT-MAP.md", "CONTEXT.md", "RELEASING.md", "apps/tui/CONTEXT.md"}
 ALLOWED_DOCUMENTATION_SECTIONS = {
-    "getting-started",
-    "guides",
-    "reference",
-    "architecture",
-    "development",
+    "使用",
+    "参考",
+    "开发",
+    "运维",
 }
 FORBIDDEN_ASSET_SUFFIXES = {
     ".gif",
@@ -109,6 +121,8 @@ def _tracked_paths(root: Path) -> list[str]:
 
 
 def _documentation_allowed(path: str) -> bool:
+    if path == "docs/文档导航.md":
+        return True
     parts = Path(path).parts
     return len(parts) > 2 and parts[1] in ALLOWED_DOCUMENTATION_SECTIONS
 

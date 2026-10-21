@@ -1,5 +1,6 @@
 // Pico TUI RPC 订阅注册表与端到端推送事件路由测试。
 
+import type { TurnEvent, TurnSubscribeResult } from '@pico/contracts/rpc'
 import type { Server, Socket } from 'node:net'
 
 import { randomUUID } from 'node:crypto'
@@ -8,8 +9,6 @@ import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-
-import type { TurnEvent, TurnSubscribeResult } from '../../../src/rpc/generated.js'
 
 import { RpcClient } from '../../../src/rpc/client.js'
 import { SubscriptionRegistry } from '../../../src/rpc/subscriptions.js'

@@ -14,10 +14,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Msg } from '../../../src/types.js'
 
-import { createChatStream, type ChatStreamRpcClient } from '../../../src/app/chatStream.js'
-import { turnController } from '../../../src/app/turnController.js'
-import { resetTurnState } from '../../../src/app/turnStore.js'
 import { getUiState, patchUiState, resetUiState } from '../../../src/app/uiStore.js'
+import { createChatStream, type ChatStreamRpcClient } from '../../../src/features/chat/model/chatStream.js'
+import { turnController } from '../../../src/features/chat/model/turnController.js'
+import { resetTurnState } from '../../../src/features/chat/model/turnStore.js'
 import {
   ModelNotAvailableError,
   TurnInProgressError,

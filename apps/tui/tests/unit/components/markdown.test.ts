@@ -8,9 +8,9 @@ import React from 'react'
 import { PassThrough } from 'stream'
 import { describe, expect, it } from 'vitest'
 
-import { AUDIO_DIRECTIVE_RE, INLINE_RE, Md, MEDIA_LINE_RE, stripInlineMarkup } from '../../../src/components/markdown.js'
-import { stripAnsi } from '../../../src/lib/text.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { stripAnsi } from '../../../src/shared/lib/text.js'
+import { AUDIO_DIRECTIVE_RE, INLINE_RE, Md, MEDIA_LINE_RE, stripInlineMarkup } from '../../../src/ui/markdown.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 const matches = (text: string) => [...text.matchAll(INLINE_RE)].map(m => m[0])
 const BEL = String.fromCharCode(7)

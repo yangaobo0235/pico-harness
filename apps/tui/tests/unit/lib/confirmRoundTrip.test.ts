@@ -7,12 +7,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Msg } from '../../../src/types.js'
 
-import { answerConfirmFromInput, answerConfirmRequest, cancelConfirmRequest } from '../../../src/app/confirmResponse.js'
 import { createGatewayEventHandler } from '../../../src/app/createGatewayEventHandler.js'
-import { getOverlayState, patchOverlayState, resetOverlayState } from '../../../src/app/overlayStore.js'
-import { resetTurnState } from '../../../src/app/turnStore.js'
 import { getUiState, patchUiState, resetUiState } from '../../../src/app/uiStore.js'
-import { tickCountdown } from '../../../src/lib/confirmCountdown.js'
+import { resetTurnState } from '../../../src/features/chat/model/turnStore.js'
+import { answerConfirmFromInput, answerConfirmRequest, cancelConfirmRequest } from '../../../src/features/interaction/model/confirmResponse.js'
+import { getOverlayState, patchOverlayState, resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
+import { tickCountdown } from '../../../src/shared/lib/confirmCountdown.js'
 
 const ref = <T>(current: T) => ({ current })
 

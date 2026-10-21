@@ -68,6 +68,8 @@ def _write_wheel(
         "pico/resources/templates/SOUL.md": "# Soul",
         "pico/resources/tracing_viewer/server.js": "",
         "pico/resources/tracing_viewer/ui/app.js": "",
+        "pico/resources/tracing_viewer/ui/index.html": "",
+        "pico/resources/tracing_viewer/ui/app.css": "",
         "pico/resources/tui/entry.js": "",
         "pico_harness-0.1.7.dist-info/METADATA": (
             "Metadata-Version: 2.4\n"
@@ -87,6 +89,8 @@ def _write_wheel(
         "pico_harness-0.1.7.dist-info/licenses/NOTICES.md": "# Notices",
         "pico_harness-0.1.7.dist-info/RECORD": "",
     }
+    for attribution in verify_distribution._required_attribution_files():
+        files.setdefault(f"pico_harness-0.1.7.dist-info/licenses/{attribution}", "License fixture")
     files.update(extra_files or {})
     for name in remove_files or set():
         files.pop(name)

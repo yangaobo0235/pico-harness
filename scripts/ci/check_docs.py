@@ -12,6 +12,7 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)")
 
 def check_docs(root: Path = ROOT) -> list[str]:
     pages = list(root.glob("*.md")) + list((root / "docs").rglob("*.md"))
+    pages.extend((root / ".github").rglob("*.md"))
     pages.append(root / "benchmarks" / "README.md")
     findings: list[str] = []
     for page in pages:

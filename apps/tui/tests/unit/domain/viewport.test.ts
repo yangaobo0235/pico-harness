@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { stickyPromptFromViewport } from '../../../src/domain/viewport.js'
+import { stickyPromptFromViewport } from '../../../src/shared/domain/viewport.js'
 
 describe('stickyPromptFromViewport', () => {
   it('hides the sticky prompt when a newer user message is already visible', () => {

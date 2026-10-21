@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Msg } from '../../../src/types.js'
 
-import { appendToolShelfMessage, canHoldToolShelf, isTodoDone, mergeToolShelfInto } from '../../../src/lib/liveProgress.js'
+import { appendToolShelfMessage, canHoldToolShelf, isTodoDone, mergeToolShelfInto } from '../../../src/shared/lib/liveProgress.js'
 
 describe('isTodoDone', () => {
   it('only treats non-empty all-completed/cancelled lists as done', () => {

@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import signal
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Any
 
@@ -143,6 +144,43 @@ async def _cleanup_gateway(
         raise cancellation
     if first_error is not None:
         raise first_error
+
+
+async def _run_with_shutdown_signals(run: Callable[[], Awaitable[None]]) -> None:
+    """Route service stop signals through the gateway's normal cleanup path.
+
+    asyncio.run owns SIGINT. Windows process groups receive SIGBREAK instead;
+    its default handler terminates Python without running async cleanup.
+    SIGTERM is the equivalent service-stop request on POSIX hosts.
+    """
+    loop = asyncio.get_running_loop()
+    task = asyncio.create_task(run())
+    stopping = False
+
+    def request_stop() -> None:
+        nonlocal stopping
+        if not stopping:
+            stopping = True
+            task.cancel()
+
+    def handle_signal(signum: int, frame: object) -> None:
+        # signal.signal also works with Windows' ProactorEventLoop. Schedule
+        # cancellation on the loop, and ignore repeats while cleanup drains.
+        loop.call_soon_threadsafe(request_stop)
+
+    previous = {}
+    try:
+        for sig in (signal.SIGTERM, getattr(signal, "SIGBREAK", None)):
+            if sig is not None:
+                previous[sig] = signal.signal(sig, handle_signal)
+        try:
+            await task
+        except asyncio.CancelledError:
+            if not stopping:
+                raise
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
 
 
 def register(app: typer.Typer) -> None:
@@ -370,7 +408,7 @@ def register(app: typer.Typer) -> None:
                 runtime=runtime,
             )
 
-        asyncio.run(run())
+        asyncio.run(_run_with_shutdown_signals(run))
 
 
 __all__ = ["register"]

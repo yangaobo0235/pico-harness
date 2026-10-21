@@ -24,7 +24,6 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
       - run: npm ci
-      - run: npm ci --prefix apps/tui
       - run: make check
       - run: uv build
       - uses: actions/upload-artifact@v4

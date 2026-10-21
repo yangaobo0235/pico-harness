@@ -1,15 +1,14 @@
+import type { ScrollBoxHandle } from '@hermes/ink'
 // SPDX-License-Identifier: MIT
 // Portions Copyright (c) 2025 Nous Research (hermes-agent, MIT).
 // Modifications Copyright (c) 2026 EverMind.
 // See NOTICES.md and LICENSES/MIT-hermes-agent.txt.
-
-import type { ScrollBoxHandle } from '@hermes/ink'
 import type { MutableRefObject, ReactNode, RefObject, SetStateAction } from 'react'
 
-import type { PasteEvent } from '../components/textInput.js'
+import type { ChatStreamRpcClient } from '../features/chat/model/chatStream.js'
 import type { ImageAttachResponse } from '../gatewayTypes.js'
-import type { RpcResult } from '../lib/rpc.js'
-import type { Theme } from '../theme.js'
+import type { SelectionApi } from '../platform/selection.js'
+import type { RpcResult } from '../shared/lib/rpc.js'
 import type { TuiRpcClient } from '../tuiRpcClient.js'
 import type {
   ClarifyReq,
@@ -21,7 +20,8 @@ import type {
   SessionInfo,
   Usage
 } from '../types.js'
-import type { ChatStreamRpcClient } from './chatStream.js'
+import type { PasteEvent } from '../ui/textInput.js'
+import type { Theme } from '../ui/theme.js'
 
 export interface StateSetter<T> {
   (value: SetStateAction<T>): void
@@ -36,16 +36,7 @@ export const INDICATOR_STYLES = ['ascii', 'emoji', 'kaomoji', 'unicode'] as cons
 export type IndicatorStyle = (typeof INDICATOR_STYLES)[number]
 export const DEFAULT_INDICATOR_STYLE: IndicatorStyle = 'unicode'
 
-export interface SelectionApi {
-  captureScrolledRows: (firstRow: number, lastRow: number, side: 'above' | 'below') => void
-  clearSelection: () => void
-  copySelection: () => Promise<string>
-  copySelectionNoClear: () => Promise<string>
-  getState: () => unknown
-  version: () => number
-  shiftAnchor: (dRow: number, minRow: number, maxRow: number) => void
-  shiftSelection: (dRow: number, minRow: number, maxRow: number) => void
-}
+export type { SelectionApi } from '../platform/selection.js'
 
 export interface CompletionItem {
   display: string

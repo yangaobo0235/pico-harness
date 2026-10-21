@@ -1,89 +1,34 @@
-# 贡献指南
+# 贡献与协作
 
-Pico 接受可复现的 Bug、文档改进和功能提案。贡献代码前建立开发环境，按模块职责组织改动，并提供实际运行的检查结果。
-
-## 开发环境
-
-- Python 3.12
-- Node.js 22 与 npm
-- uv 与 Git
-
-在仓库根目录安装依赖与 Git hooks：
-
-```powershell
-uv sync --frozen --extra dev --extra channels
-npm ci
-npm ci --prefix apps/tui
-npm run build:tui
-uv run pre-commit install
-uv run pre-commit install --hook-type commit-msg
-```
-
-使用 `uv run pico` 运行开发版本。IDE 选择仓库 `.venv` 中的解释器，并将 `src` 标记为 Sources Root。运行配置见[安装指南](docs/getting-started/installation.md)。
-
-## 代码组织
-
-| 内容 | 放置位置 |
-| --- | --- |
-| Python 产品实现 | `src/pico`，按入口、运行时、能力和外部适配分类 |
-| TUI 界面与状态 | `apps/tui/src` |
-| Python 测试 | `tests`，按测试范围和源码职责分类 |
-| TUI 应用测试 | `apps/tui/tests/unit` |
-| 工程脚本 | `scripts/ci`、`scripts/dev`、`scripts/release`、`scripts/install` |
-| 可复现评测 | `benchmarks` |
-| 使用与开发说明 | `docs` |
-
-Python 模块和函数使用 `snake_case`，类使用 `PascalCase`。文件与函数名称表达具体责任，私有辅助函数先留在所属模块。详细边界与函数归属见[架构文档](docs/architecture/overview.md)。
-
-## 本地验证
-
-支持 Make 的环境执行 `make check`。Windows 或无 Make 的环境使用[测试指南](docs/development/testing.md)中的等价命令。
-
-- 行为变更覆盖实际触发条件和预期结果。
-- 跨模块行为选择相应集成或契约测试。
-- 修改 RPC Schema 后运行 `npm --prefix apps/tui run gen:rpc`，再检查生成文件与调用接口。
-- 真实模型、消息渠道和 VM 需要对应环境；PR 中标明未执行的范围。
+人工与 AI 开发共同遵循[开发规范](docs/开发/开发规范.md)。环境、IDE 和启动见[本地开发](docs/开发/本地开发.md)，目录与调用边界见[项目结构](docs/开发/项目结构.md)，完整主题见[文档导航](docs/文档导航.md)。本文维护 Git、问题反馈与评审约定。
 
 ## 分支与提交
 
-分支名围绕目标命名，例如 `feat/channel-filter`、`fix/session-save`。提交信息和 PR 标题使用英文 ASCII，遵循 Conventional Commits：
-
-```text
-feat(tools): add a file search option
-fix(sessions): preserve message order on resume
-docs: explain workspace configuration
-```
-
-同一 PR 围绕一个目标组织。较大的功能或架构调整先在 Issue 中说明目标、行为和验证方式。
+- 开始前检查并保留已有暂存、未提交内容和本地运行数据，不擅自提交、推送或部署。
+- 分支围绕具体目标命名，Codex 默认 `codex/<topic>`，其他开发可用 `feat/<topic>`、`fix/<topic>`。
+- 提交信息和 PR 标题使用英文 ASCII，遵循 Conventional Commits，例如 `fix(gateway): drain resources on service stop`。
+- 同一 PR 解决一个完整目标；拆分可审查的逻辑提交，避免混入无关格式化、重命名和功能调整。
 
 ## Pull Request
 
-PR 描述应包括：
+使用仓库 PR 模板，说明：
 
-- 具体问题和改动后的行为。
-- 关联 Issue。
-- 实际执行的验证命令与结果。
-- 公共接口或持久化格式受到的影响，以及恢复方式。
+1. 具体触发场景、问题和改动后的行为。
+2. 影响模块、职责归属，以及契约、配置、持久化或安装资源的变化。
+3. 实际执行的验证命令、环境、结果与未验证范围。
+4. 兼容、升级和回退条件。
+5. 更新了哪篇现有文档，或为什么无需更新；有关联 Issue 时附链接。
 
-新增依赖说明用途和许可证。凭证、个人会话、运行日志、虚拟环境、构建产物和原始评测输出留在本地。
+新增依赖说明用途、实际消费者和许可证。接口/状态格式、取消与并发、授权、插件执行来源、打包资源边界变化应明确标出，供评审优先检查。
 
-## 构建与发行校验
+## 验证和文档
 
-```powershell
-npm run build:tui
-uv build
-```
+按[测试说明](docs/开发/测试说明.md)选择检查；发行资源或安装链路变化按[运行与发布](docs/运维/运行与发布.md)执行独立门禁。不要把受控回归、平台安装与真实外部验收混为同一结果。
 
-wheel 包含 Python 代码、模板、技能、TUI bundle 和 Trace 查看器。构建前生成 TUI，确保资源齐全。
+正式文档按[导航](docs/文档导航.md)维护已有主题，代码改动同步更新受到影响的章节。独立长期主题才新增文件；临时计划和运行证据留在 Git 忽略的 `.pico/` 或仓库外目录。无需为每次改动新建方案、总结或逐文档追加变更记录。
 
-`scripts/release/verify_distribution.py` 在仓库外的空目录校验发行包。支持 Make 的环境设置 `PICO_RELEASE_OUTPUT` 后执行 `make release-dist`；完整参数使用模块帮助查看：
+## 问题报告与保密
 
-```powershell
-uv run python -m scripts.release.verify_distribution --help
-```
+Bug 提供系统与版本、启动入口、复现步骤、预期和实际结果、退出码及必要的脱敏日志。功能提案说明使用场景与现有能力的差距。
 
-维护者发布前核对版本、许可证、文件清单和独立安装结果。GitHub 的手动 release workflow 生成构建产物。
-
-## 问题报告
-
-Bug 报告提供系统、版本、复现步骤、预期结果和必要的脱敏日志。安全问题按[安全报告流程](SECURITY.md)私下提交。
+凭证、私人会话、运行日志、原始评测产物、虚拟环境和缓存不提交。安全问题按 [SECURITY.md](SECURITY.md)私下提交。

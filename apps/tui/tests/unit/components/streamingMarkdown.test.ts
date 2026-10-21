@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { findStableBoundary } from '../../../src/components/streamingMarkdown.js'
+import { findStableBoundary } from '../../../src/features/chat/components/streamingMarkdown.js'
 // 通过重复调用渲染组件引用行为来测试纯边界逻辑。这里未渲染 React，而纯辅助函数
 // findStableBoundary 又未导出，因此改测组件的可观察输出：依次传入文本值，并验证
 // 稳定前缀永不后退。
@@ -13,7 +13,7 @@ import { findStableBoundary } from '../../../src/components/streamingMarkdown.js
 // 策略：独立挂载 StreamingMd，并通过 text 属性观察它渲染了哪些 <Md> 实例。
 // 在没有 DOM 渲染器时成本较高，因此通过重新导出的接口直接调用围栏和边界逻辑，
 // 验证辅助函数行为。
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 describe('findStableBoundary', () => {
   it('returns -1 when no blank line exists yet', () => {

@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { isLfReturn } from '../../../src/components/textInput.js'
+import { isLfReturn } from '../../../src/ui/textInput.js'
 
 // 原始 stdin 中的 LF 字节（\n，0x0a）视为 Ctrl+Enter（插入换行），无需依赖许多
 // SSH、zellij、VS Code 链路无法支持的 Kitty/modifyOtherKeys 协议推送。CR 字节

@@ -108,7 +108,7 @@ async def test_session_resume_unknown_id_returns_explicit_not_found(
 
 async def test_session_info_skills_and_tools_are_empty_dicts_in_v01() -> None:
     """Regression for P0 fix #2: ``Object.entries(info.skills)`` in
-    ``SessionPanel`` (``apps/tui/src/components/branding.tsx:138``) must not
+    ``SessionPanel`` (``apps/tui/src/ui/branding.tsx:138``) must not
     throw ``"Cannot convert undefined or null to object"``. Empty-dict v0.1
     placeholders satisfy that contract."""
     result = await session_create({})

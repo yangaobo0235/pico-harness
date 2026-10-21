@@ -20,7 +20,7 @@ import {
   sameToolTrailGroup,
   splitToolDuration,
   thinkingPreview
-} from '../../../src/lib/text.js'
+} from '../../../src/shared/lib/text.js'
 
 describe('isToolTrailResultLine', () => {
   it('detects completion markers', () => {

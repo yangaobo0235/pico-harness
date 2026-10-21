@@ -10,7 +10,7 @@ async function importPlatform(platform: NodeJS.Platform) {
   vi.resetModules()
   Object.defineProperty(process, 'platform', { value: platform })
 
-  return import('../../../src/lib/platform.js')
+  return import('../../../src/platform/platform.js')
 }
 
 afterEach(() => {

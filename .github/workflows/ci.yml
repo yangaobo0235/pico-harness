@@ -20,24 +20,23 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            apps/tui/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: uv sync --frozen --extra dev --extra channels
       - run: npm ci
-      - run: npm ci --prefix apps/tui
       - run: uv run ruff check src scripts tests benchmarks hatch_build.py
       - run: uv run ruff format --check src scripts tests benchmarks hatch_build.py
       - run: uv run python -m scripts.ci.check_architecture
       - run: uv run python -m scripts.ci.check_repository
       - run: uv run python -m scripts.ci.check_docs
-      - run: npm --prefix apps/tui run lint
+      - run: npm run lint
+      - run: npm run check:architecture
+      - run: npm run check:contracts
       - run: npm --prefix apps/tui run lint:rpc
       - run: npm --prefix apps/tui run lint:rpc-surface
-      - run: npm run typecheck:tui
-      - run: npm run build:tui
+      - run: npm run typecheck
+      - run: npm run build
       - run: uv run pytest tests -n 4 -q --strict-markers
-      - run: npm run test:tui
+      - run: npm test
       - run: uv build
   pull-request-title:
     if: github.event_name == 'pull_request'

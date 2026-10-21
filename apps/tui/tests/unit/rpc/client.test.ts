@@ -1,6 +1,7 @@
 // Pico TUI RPC client.ts 针对模拟 Unix 套接字服务端的集成测试。覆盖正常路径、
 // 并行请求、带类型错误映射、突然断开连接、帧大小限制以及代码生成类型基线。
 
+import type { SystemHelloResult, TerminalResizeParams, TerminalResizeResult, TurnSendParams } from '@pico/contracts/rpc'
 import type { Server, Socket } from 'node:net'
 
 import { randomUUID } from 'node:crypto'
@@ -9,8 +10,6 @@ import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-
-import type { SystemHelloResult, TerminalResizeParams, TerminalResizeResult, TurnSendParams } from '../../../src/rpc/generated.js'
 
 import { RpcClient } from '../../../src/rpc/client.js'
 import { SessionNotFoundError, ConfigValidationError, RpcError } from '../../../src/rpc/errors.js'

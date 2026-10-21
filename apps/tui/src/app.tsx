@@ -2,14 +2,14 @@ import { activeColorTier, oscColor, type StdinProps, useStdin } from '@hermes/in
 import { useStore } from '@nanostores/react'
 import { useEffect } from 'react'
 
-import type { ChatStreamRpcClient } from './app/chatStream.js'
+import type { ChatStreamRpcClient } from './features/chat/model/chatStream.js'
 import type { TuiRpcClient } from './tuiRpcClient.js'
 
+import { AppLayout } from './app/components/appLayout.js'
 import { GatewayProvider } from './app/gatewayContext.js'
 import { $uiState, $uiTheme, applyTerminalBackground } from './app/uiStore.js'
 import { useMainApp } from './app/useMainApp.js'
-import { AppLayout } from './components/appLayout.js'
-import { cursorColorHex } from './theme.js'
+import { cursorColorHex } from './ui/theme.js'
 
 // 向终端查询真实背景色（OSC 11），避免仅根据 TERM_PROGRAM 猜测明暗模式。
 // 响应会从 stdin 返回，但 Ink 的按键解析器会识别 OSC 响应并交给查询器，

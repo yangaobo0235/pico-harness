@@ -22,10 +22,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from pico.application.sessions import export_session
 from pico.config.loader import load_config
 from pico.config.paths import resolve_foreground_paths
 from pico.observability.console_logging import mute_subsystem_logs_unless_debug
-from pico.runtime.sessions.export import default_export_path, verify_export, write_portable_export
 from pico.runtime.sessions.service import SessionManager, new_chat_id
 
 console = Console()
@@ -277,24 +277,20 @@ def session_export(
     export is read-only.
     """
     manager = _open_manager()
-    res = manager.resolve_key(id_or_prefix)
-    if res.status == "ambiguous":
-        cands = ", ".join(res.candidates[:8])
+    result = export_session(manager, id_or_prefix, output=output)
+    if result.status == "ambiguous":
+        cands = ", ".join(result.candidates[:8])
         console.print(f"[red]Ambiguous id {id_or_prefix!r} — candidates: {cands}[/red]")
         raise typer.Exit(code=1)
-    session = manager.peek(res.key) if res.status == "resolved" else None
-    if session is None:
+    if result.status == "not_found":
         console.print(f"[red]No session matching {id_or_prefix!r}[/red]")
         raise typer.Exit(code=1)
-    dest = output if output is not None else default_export_path(manager.workspace, res.key)
-    try:
-        written = write_portable_export(session, dest)
-    except OSError as exc:
-        console.print(f"[red]Failed to write export to {dest}: {exc}[/red]")
+    if result.status == "write_failed":
+        console.print(f"[red]Failed to write export to {result.destination}: {result.error}[/red]")
         raise typer.Exit(code=1)
-    console.print(f"[green]✓[/green] Exported to [cyan]{written}[/cyan]")
-    if not verify_export(written):
-        console.print(f"[red]Export verification failed for {written}[/red]")
+    console.print(f"[green]✓[/green] Exported to [cyan]{result.path}[/cyan]")
+    if result.status == "verification_failed":
+        console.print(f"[red]Export verification failed for {result.path}[/red]")
         raise typer.Exit(code=1)
 
 

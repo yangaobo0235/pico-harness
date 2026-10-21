@@ -1,6 +1,6 @@
 """实现 ``config.get`` / ``config.set`` RPC handlers（specs §3.6）。
 
-契约来源是 ``docs/openspec/changes/tui-ipc-bridge/specs/tui-ipc.md §3.6``。
+线协议见 ``contracts/rpc/openrpc.json``，维护约定见 ``docs/开发/扩展开发.md``。
 v0.1 surface 只开放四个 hot-changeable key；其他 write target 抛出
 :class:`ConfigFieldReadonlyError`（``-32010``）。值以 dotted-path nesting 写入
 ``~/.pico/config.json``，例如 ``tui.theme`` 对应

@@ -1,6 +1,6 @@
 """Harness runner — Tier 1 (tui-use) impl per Day 0 spike (2026-05-20).
 
-Public API contract: ``docs/openspec/changes/tui-auto-test/specs/tui-autotest.md`` §S3.
+Usage and environment requirements: ``docs/开发/测试说明.md``.
 Tier 1 wraps the ``tui-use`` npm CLI (>=0.1.20) via ``subprocess.run``. The
 tui-use daemon owns PTY lifecycle; this class only marshals verb→CLI args and
 parses snapshot/info output.

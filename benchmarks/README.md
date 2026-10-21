@@ -63,7 +63,7 @@ uv run python benchmarks/clawbench/stream.py --help
 | 缓存断点策略 | `tests/unit/observability/test_token_wise_cache_strategies.py` |
 | 对话与工具工作负载 | `tests/unit/observability/test_token_wise_workload_scenarios.py` |
 
-两个入口使用 `real_llm` 标记，输出写入 `.pico/evidence/prompt-cache`。真实模型实验需要凭证和预算，选择方式见[测试指南](../docs/development/testing.md)。
+两个入口使用 `real_llm` 标记，输出写入 `.pico/evidence/prompt-cache`。真实模型实验需要凭证和预算，选择方式见[测试指南](../docs/开发/测试说明.md)。
 
 ## 结果与输出
 

@@ -10,7 +10,7 @@ import {
   OSC52_CLIPBOARD_QUERY,
   parseOsc52ClipboardData,
   readOsc52Clipboard
-} from '../../../src/lib/osc52.js'
+} from '../../../src/platform/osc52.js'
 
 const envBackup = { ...process.env }
 

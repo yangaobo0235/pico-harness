@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { computeWheelStep, initWheelAccel } from '../../../src/lib/wheelAccel.js'
+import { computeWheelStep, initWheelAccel } from '../../../src/platform/wheelAccel.js'
 
 describe('wheelAccel — native path', () => {
   it('first click after init returns base', () => {

@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { providerDisplayNames } from '../../../src/domain/providers.js'
+import { providerDisplayNames } from '../../../src/shared/domain/providers.js'
 
 describe('providerDisplayNames', () => {
   it('returns bare names when all are unique', () => {

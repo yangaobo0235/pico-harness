@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { stripTrailingPasteNewlines } from '../../../src/lib/text.js'
+import { stripTrailingPasteNewlines } from '../../../src/shared/lib/text.js'
 
 describe('stripTrailingPasteNewlines', () => {
   it('removes trailing newline runs from pasted text', () => {

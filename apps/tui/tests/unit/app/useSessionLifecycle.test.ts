@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { GatewayRpc } from '../../../src/app/interfaces.js'
 
-import { getOverlayState, patchOverlayState, resetOverlayState } from '../../../src/app/overlayStore.js'
+import { getOverlayState, patchOverlayState, resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
 import {
   closeCurrentSessionForSwitch,
   closeSessionWithCleanup,
@@ -14,7 +14,7 @@ import {
   sessionSwitchBlockMessage,
   tryAcquireSessionMutation,
   writeActiveSessionFile
-} from '../../../src/app/useSessionLifecycle.js'
+} from '../../../src/features/sessions/model/useSessionLifecycle.js'
 
 describe('sessionSwitchBlockMessage', () => {
   it('blocks Session switches while a clipboard image attachment is pending', () => {

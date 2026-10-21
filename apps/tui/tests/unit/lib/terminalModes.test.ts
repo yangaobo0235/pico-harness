@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { resetTerminalModes, TERMINAL_MODE_RESET } from '../../../src/lib/terminalModes.js'
+import { resetTerminalModes, TERMINAL_MODE_RESET } from '../../../src/platform/terminalModes.js'
 
 describe('terminal mode reset', () => {
   it('includes common sticky input modes', () => {

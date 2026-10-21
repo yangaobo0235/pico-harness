@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { highlightLine, isHighlightable } from '../../../src/lib/syntax.js'
-import { DEFAULT_THEME } from '../../../src/theme.js'
+import { highlightLine, isHighlightable } from '../../../src/shared/lib/syntax.js'
+import { DEFAULT_THEME } from '../../../src/ui/theme.js'
 
 const t = DEFAULT_THEME
 

@@ -5,7 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { fmtCwdBranch, shortCwd } from '../../../src/domain/paths.js'
+import { fmtCwdBranch, shortCwd } from '../../../src/shared/domain/paths.js'
 
 describe('shortCwd', () => {
   const origHome = process.env.HOME

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { SLASH_COMMANDS } from '../../../src/app/slash/registry.js'
+import { SLASH_COMMANDS } from '../../../src/features/commands/slash/registry.js'
 
 const RETAINED = [
   'help',

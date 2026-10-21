@@ -84,6 +84,17 @@ def test_changed_paths_reads_added_and_modified_files(monkeypatch) -> None:
     assert calls == [["git", "diff", "--name-only", "--diff-filter=AM", "base..HEAD"]]
 
 
+def test_allows_only_the_authored_vite_entry(tmp_path: Path) -> None:
+    paths = ["apps/tracing-viewer/index.html", "apps/tracing-viewer/report.html"]
+    for name in paths:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("<!doctype html>", encoding="utf-8")
+    assert check_large_files.find_blocked_asset_files(paths, root=tmp_path) == [
+        check_large_files.BlockedAssetViolation(path=paths[1], extension=".html")
+    ]
+
+
 def test_main_reports_oversized_files(tmp_path: Path, monkeypatch, capsys) -> None:
     large = tmp_path / "demo.mp4"
     large.write_bytes(b"x" * 2048)

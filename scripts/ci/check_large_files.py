@@ -9,6 +9,8 @@ from pathlib import Path
 
 ZERO_SHA = "0" * 40
 DEFAULT_MAX_BYTES = 1024 * 1024
+# The Vite document is an authored application entry, not a generated report.
+APPLICATION_ENTRY_FILES = {"apps/tracing-viewer/index.html"}
 MAX_BYTES_ENV = "CHECK_LARGE_FILES_MAX_BYTES"
 BLOCKED_ASSET_EXTENSIONS = {
     ".apng",
@@ -128,7 +130,7 @@ def find_blocked_asset_files(paths: list[str], *, root: Path) -> list[BlockedAss
         if not candidate.is_file():
             continue
         extension = candidate.suffix.lower()
-        if extension in BLOCKED_ASSET_EXTENSIONS:
+        if extension in BLOCKED_ASSET_EXTENSIONS and Path(path).as_posix() not in APPLICATION_ENTRY_FILES:
             violations.append(BlockedAssetViolation(path=path, extension=extension))
     return violations
 

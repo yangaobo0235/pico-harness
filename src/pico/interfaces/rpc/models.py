@@ -1,6 +1,6 @@
 """定义 tui-ipc-bridge JSON-RPC contract 的 Pydantic v2 models。
 
-这些类型是 ``apps/tui/rpc-schema/openrpc.json`` 的 Python-side mirror。
+这些类型是 ``contracts/rpc/openrpc.json`` 的 Python-side mirror。
 ``specs/tui-ipc.md`` §3.12 中每个 public type 都有对应
 :class:`pydantic.BaseModel`，每个 RPC method 都有 ``<Method>Params`` 与
 ``<Method>Result`` model。``TurnEvent`` 使用 ``type`` discriminator 把 streaming event

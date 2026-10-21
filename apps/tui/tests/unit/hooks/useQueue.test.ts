@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { removeAtInPlace, replaceQueuedSubmissionAt } from '../../../src/hooks/useQueue.js'
+import { removeAtInPlace, replaceQueuedSubmissionAt } from '../../../src/features/chat/hooks/useQueue.js'
 
 describe('removeAtInPlace', () => {
   it('removes the item at the given index in place', () => {

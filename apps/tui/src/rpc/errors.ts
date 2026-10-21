@@ -4,7 +4,7 @@
 // 错误响应时，`client.ts` 使用规范构造器 `rpcErrorFromFrame(frame)` 按
 // `code` 选择匹配子类，未知错误码则回退到通用 `RpcError`。
 
-import type { JsonRpcErrorObject } from './generated.js'
+import type { JsonRpcErrorObject } from '@pico/contracts/rpc'
 
 /** 所有向调用方暴露的 JSON-RPC 错误响应的基类。 */
 export class RpcError extends Error {

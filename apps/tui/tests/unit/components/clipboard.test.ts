@@ -9,16 +9,15 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { patchUiState, resetUiState } from '../../../src/app/uiStore.js'
-import { trackPasteFlight } from '../../../src/app/useComposerState.js'
 import { pasteClipboardImage } from '../../../src/app/useMainApp.js'
+import { trackPasteFlight } from '../../../src/features/chat/hooks/useComposerState.js'
 import {
   continueAfterCancel,
   dispatchNextQueuedSubmission,
   pauseBusySubmission,
   resolveQueuedEdit,
   submitUnlessPastePending
-} from '../../../src/app/useSubmission.js'
-import { asyncPasteFallbackText } from '../../../src/components/textInput.js'
+} from '../../../src/features/chat/model/useSubmission.js'
 import {
   claimClipboardImages,
   cleanupClipboardImages,
@@ -32,7 +31,8 @@ import {
   retainClipboardImage,
   unclaimClipboardImages,
   writeClipboardText
-} from '../../../src/lib/clipboard.js'
+} from '../../../src/platform/clipboard.js'
+import { asyncPasteFallbackText } from '../../../src/ui/textInput.js'
 
 const PNG_BYTES = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',

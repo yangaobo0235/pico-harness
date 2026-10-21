@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { computePrecisionWheelStep, initPrecisionWheel } from '../../../src/lib/precisionWheel.js'
+import { computePrecisionWheelStep, initPrecisionWheel } from '../../../src/platform/precisionWheel.js'
 
 describe('precisionWheel', () => {
   it('passes the first modifier-held wheel event', () => {

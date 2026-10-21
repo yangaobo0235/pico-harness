@@ -3,8 +3,9 @@ import { atom, computed } from 'nanostores'
 import type { GatewaySkin } from '../gatewayTypes.js'
 
 import { MOUSE_TRACKING } from '../config/env.js'
-import { ZERO } from '../domain/usage.js'
-import { applyDetectedBackground, DEFAULT_THEME, fromSkin, resolveCurrentDefaultTheme } from '../theme.js'
+import { ZERO } from '../shared/domain/usage.js'
+import { applyDetectedBackground, DEFAULT_THEME, fromSkin, resolveCurrentDefaultTheme } from '../ui/theme.js'
+import { $uiTheme } from '../ui/themeStore.js'
 import { DEFAULT_INDICATOR_STYLE, type UiState } from './interfaces.js'
 
 const buildUiState = (): UiState => ({
@@ -36,7 +37,8 @@ const buildUiState = (): UiState => ({
 
 export const $uiState = atom<UiState>(buildUiState())
 
-export const $uiTheme = computed($uiState, state => state.theme)
+export { $uiTheme } from '../ui/themeStore.js'
+$uiState.listen(state => $uiTheme.set(state.theme))
 export const $uiSessionId = computed($uiState, state => state.sid)
 
 export const getUiState = () => $uiState.get()

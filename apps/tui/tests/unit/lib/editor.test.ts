@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os'
 import { delimiter, join } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { resolveEditor } from '../../../src/lib/editor.js'
+import { resolveEditor } from '../../../src/platform/editor.js'
 
 const exe = (dir: string, name: string): string => {
   const path = join(dir, name)

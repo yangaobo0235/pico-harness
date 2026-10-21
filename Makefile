@@ -13,10 +13,10 @@ help:
 	@echo "  format         Format Python sources"
 	@echo "  check          Run the complete local deterministic acceptance gate"
 	@echo "  check-public-tree Fail if internal material crosses the publication boundary"
-	@echo "  lint           Run Python and TUI lint gates"
+	@echo "  lint           Run Python, TUI and Trace viewer lint gates"
 	@echo "  lint-python    Ruff-check the current lint target set"
 	@echo "  lint-tui       TypeScript lint + RPC drift check"
-	@echo "  test           Run focused Python checks and TUI tests"
+	@echo "  test           Run deterministic Python, TUI and Trace viewer tests"
 	@echo "  test-retained  Run the deterministic Python suite without opt-in tests"
 	@echo "  picobench-smoke Run the credential-free PicoBench gate"
 	@echo "  picobench-runtime-scheduler Run deterministic scheduler A/B experiments"
@@ -53,17 +53,16 @@ install: install-deps
 	uv run pre-commit install
 	uv run pre-commit install --hook-type commit-msg
 	npm ci
-	npm ci --prefix apps/tui
 
 format:
 	uv run --extra dev ruff format src scripts tests benchmarks hatch_build.py
 
-check: check-public-tree check-architecture check-docs lint build test-retained test-tui
+check: check-public-tree check-architecture check-docs lint build test-retained test-tui test-tracing
 
 check-public-tree:
 	uv run python scripts/ci/check_repository.py
 
-lint: lint-python lint-tui
+lint: lint-python lint-tui lint-tracing
 
 lint-python:
 	uv run --extra dev ruff check $(PYTHON_LINT_TARGETS)
@@ -75,11 +74,11 @@ lint-tui:
 	npm run lint:rpc-surface --prefix apps/tui
 	npm run type-check --prefix apps/tui
 
-test: test-python test-tui
+test: test-python test-tui test-tracing
 
 test-python: test-retained
 
-test-retained: build-tui
+test-retained: build
 	uv run --frozen --extra dev --extra channels --exact pytest tests -n 4 -q --strict-markers
 
 picobench-smoke:
@@ -160,7 +159,7 @@ verify-evolver:
 		tests/integration/test_evolver_lifecycle_e2e.py \
 		-q --strict-markers
 
-build: build-tui
+build: build-tui build-tracing
 
 build-tui:
 	npm run build --prefix apps/tui
@@ -192,9 +191,23 @@ clean:
 .PHONY: check-architecture check-docs test-performance
 check-architecture:
 	uv run python -m scripts.ci.check_architecture
+	npm run check:architecture
 
 check-docs:
 	uv run python -m scripts.ci.check_docs
 
 test-performance:
 	uv run --extra dev pytest -m performance -n 0 -q
+
+.PHONY: lint-tracing test-tracing build-tracing
+lint-tracing:
+	npm run lint:tracing
+	npm run typecheck:tracing
+	npm run check:contracts
+	npm run check:architecture
+
+test-tracing:
+	npm run test:tracing
+
+build-tracing:
+	npm run build:tracing

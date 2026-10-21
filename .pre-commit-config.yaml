@@ -35,3 +35,21 @@ repos:
         language: system
         pass_filenames: false
         files: '^src/pico/.*\.py$'
+      - id: eslint-tracing
+        name: eslint (Trace viewer)
+        entry: npm run lint:tracing
+        language: system
+        pass_filenames: false
+        files: '^apps/tracing-viewer/(src|tests)/.*\.(ts|tsx)$'
+      - id: typescript-architecture
+        name: TypeScript module boundaries
+        entry: npm run check:architecture
+        language: system
+        pass_filenames: false
+        files: '^(apps/[^/]+/src|packages/contracts/src)/.*\.(ts|tsx)$'
+      - id: shared-contracts
+        name: shared contract drift
+        entry: npm run check:contracts
+        language: system
+        pass_filenames: false
+        files: '^(contracts/|packages/contracts/|apps/tui/scripts/gen-rpc-types\.mjs)'

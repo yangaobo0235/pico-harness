@@ -25,4 +25,4 @@ export {
   NotDispatchCompatibleError,
   rpcErrorFromFrame
 } from './errors.js'
-export * from './generated.js'
+export * from '@pico/contracts/rpc'

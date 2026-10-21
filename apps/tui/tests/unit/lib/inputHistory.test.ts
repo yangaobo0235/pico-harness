@@ -13,7 +13,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { append, load } from '../../../src/lib/history.js'
+import type { append, load } from '../../../src/shared/lib/history.js'
 
 interface HistoryModule {
   append: typeof append
@@ -27,7 +27,7 @@ beforeAll(async () => {
   picoDir = mkdtempSync(join(tmpdir(), 'pico-hist-'))
 
   vi.stubEnv('PICO_HOME', picoDir)
-  history = await import('../../../src/lib/history.js')
+  history = await import('../../../src/shared/lib/history.js')
 })
 
 afterAll(() => {
@@ -74,7 +74,7 @@ describe('input history store (backs cycleHistory)', () => {
     history.append('line a\nline b')
 
     vi.resetModules()
-    const reloaded: HistoryModule = await import('../../../src/lib/history.js')
+    const reloaded: HistoryModule = await import('../../../src/shared/lib/history.js')
 
     expect(reloaded.load().at(-1)).toBe('line a\nline b')
     expect(reloaded.load()).toEqual([

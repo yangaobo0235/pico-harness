@@ -5,7 +5,7 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { terminalParityHints } from '../../../src/lib/terminalParity.js'
+import { terminalParityHints } from '../../../src/platform/terminalParity.js'
 
 describe('terminalParityHints', () => {
   it('warns for Apple Terminal and SSH/tmux sessions', async () => {

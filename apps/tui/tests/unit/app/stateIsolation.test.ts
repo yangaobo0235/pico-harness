@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { patchTurnState, resetTurnState } from '../../../src/app/turnStore.js'
 import { $uiState, resetUiState } from '../../../src/app/uiStore.js'
+import { patchTurnState, resetTurnState } from '../../../src/features/chat/model/turnStore.js'
 
 const shallowEqual = <T extends Record<string, unknown>>(a: T, b: T) =>
   Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => Object.is(a[key], b[key]))

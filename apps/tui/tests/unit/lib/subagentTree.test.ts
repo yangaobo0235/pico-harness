@@ -21,7 +21,7 @@ import {
   topLevelSubagents,
   treeTotals,
   widthByDepth
-} from '../../../src/lib/subagentTree.js'
+} from '../../../src/shared/lib/subagentTree.js'
 
 const makeItem = (overrides: Partial<SubagentProgress> & Pick<SubagentProgress, 'id' | 'index'>): SubagentProgress => ({
   depth: 0,

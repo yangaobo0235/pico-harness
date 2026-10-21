@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { decideRightClickAction } from '../../../src/components/textInput.js'
+import { decideRightClickAction } from '../../../src/ui/textInput.js'
 
 describe('decideRightClickAction', () => {
   it('returns paste when there is no selection', () => {

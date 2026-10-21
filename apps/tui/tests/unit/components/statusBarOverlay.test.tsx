@@ -23,11 +23,11 @@ import type {
 } from '../../../src/app/interfaces.js'
 import type { Msg } from '../../../src/types.js'
 
+import { AppLayout } from '../../../src/app/components/appLayout.js'
 import { GatewayProvider } from '../../../src/app/gatewayContext.js'
-import { patchOverlayState, resetOverlayState } from '../../../src/app/overlayStore.js'
 import { patchUiState, resetUiState } from '../../../src/app/uiStore.js'
-import { AppLayout } from '../../../src/components/appLayout.js'
-import { stripAnsi } from '../../../src/lib/text.js'
+import { patchOverlayState, resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
+import { stripAnsi } from '../../../src/shared/lib/text.js'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 

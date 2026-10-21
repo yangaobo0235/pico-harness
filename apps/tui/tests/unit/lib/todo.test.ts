@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { todoGlyph, todoTone } from '../../../src/lib/todo.js'
+import { todoGlyph, todoTone } from '../../../src/shared/lib/todo.js'
 
 describe('todoGlyph', () => {
   it('uses fixed-width ASCII markers so the active row does not render wide or emoji-like', () => {

@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
-VIEWER_DIR = ROOT / "apps" / "tracing-viewer"
+VIEWER_DIR = ROOT / "apps" / "tracing-viewer" / "dist"
 
 
 def _node() -> str:
@@ -52,18 +52,6 @@ def _span(index: int) -> dict:
 def _write_jsonl(path: Path, records: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(f"{json.dumps(record)}\n" for record in records), encoding="utf-8")
-
-
-def test_viewer_ui_exposes_explicit_shutdown_lifecycle() -> None:
-    shell = (VIEWER_DIR / "ui/shell.js").read_text(encoding="utf-8")
-    app = (VIEWER_DIR / "ui/app.js").read_text(encoding="utf-8")
-
-    assert 'id="shutdownButton"' in shell
-    assert 'id="shutdownDialog"' in shell
-    assert 'id="shutdownState"' in shell
-    assert "fetch('/api/shutdown'" in app
-    assert "'X-Pico-Viewer-Action': 'shutdown'" in app
-    assert "classList.add('viewer-stopped')" in app
 
 
 def test_viewer_reads_a_bounded_recent_window(tmp_path: Path) -> None:

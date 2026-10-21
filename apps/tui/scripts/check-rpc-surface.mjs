@@ -7,7 +7,7 @@ import ts from 'typescript'
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const SOURCE_ROOT = join(ROOT, 'src')
-const SCHEMA_PATH = join(ROOT, 'rpc-schema', 'openrpc.json')
+const SCHEMA_PATH = resolve(ROOT, '../../contracts/rpc/openrpc.json')
 const CALL_NAMES = new Set(['request', 'rpc', 'subscribe'])
 
 const sourceFiles = []

@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { looksLikeDroppedPath } from '../../../src/app/useComposerState.js'
+import { looksLikeDroppedPath } from '../../../src/features/chat/hooks/useComposerState.js'
 
 describe('looksLikeDroppedPath', () => {
   it('recognizes macOS screenshot temp paths and file URIs', () => {

@@ -5,7 +5,7 @@
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { scrollWithSelectionBy } from '../../../src/app/scroll.js'
+import { scrollWithSelectionBy } from '../../../src/platform/scroll.js'
 
 function makeScroll(overrides: Partial<Record<string, unknown>> = {}) {
   const getScrollHeight = (overrides.getScrollHeight as (() => number) | undefined) ?? vi.fn(() => 100)

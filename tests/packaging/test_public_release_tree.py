@@ -8,21 +8,30 @@ def test_current_tracked_tree_is_publication_safe() -> None:
 
 
 def test_internal_document_and_private_repository_link_are_rejected(tmp_path: Path) -> None:
-    (tmp_path / "AGENTS.md").write_text("internal policy", encoding="utf-8")
-    onboarding = tmp_path / "docs" / "reference"
+    (tmp_path / "INTERNAL.md").write_text("internal policy", encoding="utf-8")
+    onboarding = tmp_path / "docs" / "参考"
     onboarding.mkdir(parents=True)
-    (onboarding / "README.md").write_text(
+    (onboarding / "配置.md").write_text(
         "https://github.com/" + "Hackerismydream/" + "myna",
         encoding="utf-8",
     )
 
     findings = check_public_tree(
         tmp_path,
-        tracked_paths=["AGENTS.md", "docs/reference/README.md"],
+        tracked_paths=["INTERNAL.md", "docs/参考/配置.md"],
     )
 
-    assert "unexpected root file: AGENTS.md" in findings
+    assert "unexpected root file: INTERNAL.md" in findings
     assert any("private repository reference" in finding for finding in findings)
+
+
+def test_public_developer_entry_and_chinese_documentation_are_allowed(tmp_path: Path) -> None:
+    paths = ["AGENTS.md", "docs/文档导航.md", "docs/开发/开发规范.md", "docs/运维/运行与发布.md"]
+    for name in paths:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("public documentation", encoding="utf-8")
+    assert check_public_tree(tmp_path, tracked_paths=paths) == []
 
 
 def test_unrecognized_documentation_groups_are_rejected(tmp_path: Path) -> None:

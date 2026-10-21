@@ -17,10 +17,10 @@ import { useState } from 'react'
 
 import type { ClarifyReq, ConfirmReq, PanelSection, SessionInfo, Usage } from '../types.js'
 
-import { FloatBox, StatusRule } from '../components/appChrome.js'
-import { Banner, Panel, SessionPanel } from '../components/branding.js'
-import { ClarifyPrompt, ConfirmPrompt } from '../components/prompts.js'
-import { DEFAULT_THEME } from '../theme.js'
+import { FloatBox, StatusRule } from '../app/components/appChrome.js'
+import { ClarifyPrompt, ConfirmPrompt } from '../features/interaction/components/prompts.js'
+import { Banner, Panel, SessionPanel } from '../ui/branding.js'
+import { DEFAULT_THEME } from '../ui/theme.js'
 
 const t = DEFAULT_THEME
 const noop = () => {}

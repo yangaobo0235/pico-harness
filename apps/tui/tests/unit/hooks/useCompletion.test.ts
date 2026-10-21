@@ -2,10 +2,10 @@ import { render } from 'ink-testing-library'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { SlashCommand } from '../../../src/app/slash/types.js'
+import type { SlashCommand } from '../../../src/features/commands/slash/types.js'
 
-import { SLASH_COMMANDS } from '../../../src/app/slash/registry.js'
-import { slashCompletions, useCompletion } from '../../../src/hooks/useCompletion.js'
+import { slashCompletions, useCompletion } from '../../../src/features/commands/hooks/useCompletion.js'
+import { SLASH_COMMANDS } from '../../../src/features/commands/slash/registry.js'
 
 const REGISTRY: SlashCommand[] = [
   { aliases: ['exit', 'q'], help: 'exit pico', name: 'quit', run: vi.fn() },

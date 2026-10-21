@@ -8,11 +8,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Msg } from '../../../src/types.js'
 
 import { createGatewayEventHandler } from '../../../src/app/createGatewayEventHandler.js'
-import { resetOverlayState } from '../../../src/app/overlayStore.js'
-import { turnController } from '../../../src/app/turnController.js'
-import { getTurnState, resetTurnState } from '../../../src/app/turnStore.js'
 import { getUiState, patchUiState, resetUiState } from '../../../src/app/uiStore.js'
-import { estimateTokensRough } from '../../../src/lib/text.js'
+import { turnController } from '../../../src/features/chat/model/turnController.js'
+import { getTurnState, resetTurnState } from '../../../src/features/chat/model/turnStore.js'
+import { resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
+import { estimateTokensRough } from '../../../src/shared/lib/text.js'
 
 const ref = <T>(current: T) => ({ current })
 

@@ -1,7 +1,7 @@
 """``pico tracing`` — open the tracing dashboard.
 
 The dashboard is a dependency-free Node viewer bundled under
-``apps/tracing-viewer/``. Instrumentation itself runs in-process (installed at
+``apps/tracing-viewer/dist/``. Instrumentation itself runs in-process (installed at
 CLI startup, see :mod:`pico.observability.tracing`); this command only launches the viewer
 that reads the captured spans from ``~/.pico/traces``.
 
@@ -37,7 +37,10 @@ def _viewer_dir() -> Path:
     from pico.resources import package_path, source_app
 
     packaged = package_path("tracing_viewer")
-    return packaged if (packaged / "server.js").is_file() else (source_app("tracing-viewer") or packaged)
+    if (packaged / "server.js").is_file():
+        return packaged
+    source = source_app("tracing-viewer")
+    return source / "dist" if source is not None else packaged
 
 
 def _port_live(port: int) -> bool:
@@ -98,7 +101,9 @@ def _resolve_node() -> str:
 def _server_js() -> Path:
     server_js = _viewer_dir() / "server.js"
     if not server_js.exists():
-        console.print(f"[red]Viewer not found at {server_js}[/red]")
+        console.print(
+            f"[red]Viewer not found at {server_js}[/red] Run npm ci and npm run build:tracing in the source checkout."
+        )
         raise typer.Exit(1)
     return server_js
 

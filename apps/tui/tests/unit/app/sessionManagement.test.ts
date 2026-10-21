@@ -4,13 +4,13 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { ChatStreamRpcClient } from '../../../src/app/chatStream.js'
+import type { ChatStreamRpcClient } from '../../../src/features/chat/model/chatStream.js'
 
-import { createSlashHandler } from '../../../src/app/createSlashHandler.js'
-import { getOverlayState, resetOverlayState } from '../../../src/app/overlayStore.js'
-import { findSlashCommand } from '../../../src/app/slash/registry.js'
 import { patchUiState, resetUiState } from '../../../src/app/uiStore.js'
 import { buildChatStreamHandle } from '../../../src/app/useMainApp.js'
+import { createSlashHandler } from '../../../src/features/commands/createSlashHandler.js'
+import { findSlashCommand } from '../../../src/features/commands/slash/registry.js'
+import { getOverlayState, resetOverlayState } from '../../../src/features/interaction/model/overlayStore.js'
 
 // ── 辅助函数 ───────────────────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ import {
   getVSCodeStyleConfigDir,
   shouldPromptForTerminalSetup,
   stripJsonComments
-} from '../../../src/lib/terminalSetup.js'
+} from '../../../src/platform/terminalSetup.js'
 
 describe('terminalSetup helpers', () => {
   it('detects VS Code family terminals from environment', () => {

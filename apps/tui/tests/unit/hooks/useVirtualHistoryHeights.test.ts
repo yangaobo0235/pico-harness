@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { ensureVirtualItemHeight } from '../../../src/hooks/useVirtualHistory.js'
+import { ensureVirtualItemHeight } from '../../../src/shared/hooks/useVirtualHistory.js'
 
 describe('ensureVirtualItemHeight', () => {
   it('reuses cached heights without invoking the estimator', () => {

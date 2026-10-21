@@ -6,7 +6,7 @@
 //
 // 未知 subscription_id 不会使客户端崩溃，只会向 stderr 记录警告并丢弃该帧。
 
-import type { EventNotificationParams } from './generated.js'
+import type { EventNotificationParams } from '@pico/contracts/rpc'
 
 type AnyHandler = (event: unknown) => void
 

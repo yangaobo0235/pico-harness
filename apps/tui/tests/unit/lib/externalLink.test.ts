@@ -12,7 +12,7 @@ import {
   isTitleFetchable,
   normalizeExternalUrl,
   urlSlugTitleLabel
-} from '../../../src/lib/externalLink.js'
+} from '../../../src/platform/externalLink.js'
 
 afterEach(() => {
   __resetLinkTitleCache()

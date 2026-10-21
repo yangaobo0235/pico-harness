@@ -3,14 +3,37 @@
   "private": true,
   "description": "Repository-level tooling for Pico.",
   "license": "Apache-2.0",
+  "workspaces": [
+    "apps/tui",
+    "apps/tui/packages/hermes-ink",
+    "apps/tracing-viewer",
+    "packages/contracts"
+  ],
   "scripts": {
     "commitlint": "commitlint --config commitlint.config.cjs",
     "build:tui": "npm --prefix apps/tui run build",
     "test:tui": "npm --prefix apps/tui test",
     "lint:tui": "npm --prefix apps/tui run lint",
-    "typecheck:tui": "npm --prefix apps/tui run type-check"
+    "typecheck:tui": "npm --prefix apps/tui run type-check",
+    "dev:tui": "npm --workspace pico-tui run dev",
+    "dev:tracing": "npm --workspace @pico/tracing-viewer run dev",
+    "build:tracing": "npm --workspace @pico/tracing-viewer run build",
+    "lint:tracing": "npm --workspace @pico/tracing-viewer run lint",
+    "typecheck:tracing": "npm --workspace @pico/tracing-viewer run typecheck",
+    "test:tracing": "npm --workspace @pico/tracing-viewer test",
+    "gen:contracts": "npm --workspace @pico/contracts run generate",
+    "check:contracts": "npm --workspace @pico/contracts run check",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present && npm run typecheck:tui",
+    "test": "npm run test:tui && npm run test:tracing",
+    "build": "npm run check:contracts && npm run build:tui && npm run build:tracing",
+    "check:architecture": "node scripts/ci/check_typescript_architecture.mjs && node --test scripts/ci/check_typescript_architecture.test.mjs"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.1.0"
+    "@commitlint/cli": "^21.1.0",
+    "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "zod-validation-error": "^4.0.2"
   }
 }

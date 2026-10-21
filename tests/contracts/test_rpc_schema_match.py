@@ -1,7 +1,7 @@
 """Schema-match test: Pydantic models (pico.interfaces.rpc.models) ↔ OpenRPC schema.
 
 This test is the CI guardrail that catches drift between the single source of
-truth (``apps/tui/rpc-schema/openrpc.json``) and the Python-side Pydantic models.
+truth (``contracts/rpc/openrpc.json``) and the Python-side Pydantic models.
 
 Strategy
 --------
@@ -36,7 +36,7 @@ from pydantic import BaseModel
 
 from pico.interfaces.rpc.models import METHOD_MODELS
 
-SCHEMA_PATH = Path(__file__).resolve().parents[2] / "apps/tui" / "rpc-schema" / "openrpc.json"
+SCHEMA_PATH = Path(__file__).resolve().parents[2] / "contracts" / "rpc" / "openrpc.json"
 
 
 # ---------------------------------------------------------------------------
