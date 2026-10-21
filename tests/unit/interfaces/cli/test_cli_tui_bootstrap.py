@@ -243,6 +243,9 @@ def test_run_subprocess_returns_child_exit_code(monkeypatch):
         def wait(self, timeout=None):
             return self._exit_code
 
+        def poll(self):
+            return self._exit_code
+
         def send_signal(self, sig):
             pass
 

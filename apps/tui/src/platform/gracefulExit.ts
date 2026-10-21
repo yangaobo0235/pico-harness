@@ -5,9 +5,11 @@ interface SetupOptions {
   onSignal?: (signal: NodeJS.Signals) => void
 }
 
-const SIGNAL_EXIT_CODE: Record<'SIGHUP' | 'SIGINT' | 'SIGTERM', number> = {
+const SIGNAL_EXIT_CODE = {
   SIGHUP: 129,
   SIGINT: 130,
+  // Python forwards Windows stop requests as CTRL_BREAK_EVENT.
+  SIGBREAK: 130,
   SIGTERM: 143
 }
 
@@ -38,7 +40,13 @@ export function setupGracefulExit({ cleanups = [], failsafeMs = 4000, onError, o
     void Promise.allSettled(cleanups.map(fn => Promise.resolve().then(fn))).finally(() => process.exit(code))
   }
 
-  for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
+  const signals: (keyof typeof SIGNAL_EXIT_CODE)[] = ['SIGINT', 'SIGTERM', 'SIGHUP']
+
+  if (process.platform === 'win32') {
+    signals.push('SIGBREAK')
+  }
+
+  for (const sig of signals) {
     process.on(sig, () => exit(SIGNAL_EXIT_CODE[sig], sig))
   }
 

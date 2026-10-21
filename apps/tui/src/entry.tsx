@@ -68,10 +68,6 @@ if (!socketPath) {
 
 const gw = new TuiRpcClient({ socketPath })
 
-// 握手 `system.hello` 必须在第 2 阶段 RpcServer 的 5 秒超时内完成；任何失败都会拒绝并冒泡到
-// setupGracefulExit 错误路径。
-await gw.start()
-
 const dumpNotice = (snap: MemorySnapshot, dump: HeapDumpResult | null) =>
   `pico-tui: ${snap.level} memory (${formatBytes(snap.heapUsed)}) — auto heap dump → ${dump?.heapPath ?? '(failed)'}\n`
 
@@ -93,6 +89,21 @@ setupGracefulExit({
     process.stderr.write(`pico-tui: received ${signal}\n`)
   }
 })
+
+// Register stop handlers before connecting so an interrupt during the RPC
+// handshake uses the same terminal/connection cleanup as a running session.
+try {
+  await gw.start()
+} catch (err) {
+  // The error listeners above report failures without exiting. Startup still
+  // needs a failing exit code, and must close the partially connected client.
+  resetTerminalModes()
+  gw.kill()
+  const message = err instanceof Error ? err.message : String(err)
+
+  process.stderr.write(`pico-tui: RPC startup failed: ${message.slice(0, 2000)}\n`)
+  process.exit(1)
+}
 
 const stopMemoryMonitor = startMemoryMonitor({
   onCritical: (snap, dump) => {

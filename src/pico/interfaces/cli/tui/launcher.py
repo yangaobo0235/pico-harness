@@ -20,6 +20,8 @@ import socket
 import subprocess
 import sys
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -125,6 +127,49 @@ def find_node() -> Tuple[Optional[str], Optional[Tuple[int, int, int]]]:
     return (None, None)
 
 
+def _child_creation_flags() -> int:
+    # CTRL_BREAK_EVENT can target only a Windows process-group leader. Keep
+    # inherited stdio so the child still uses the caller's terminal.
+    return subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+
+
+@contextmanager
+def _child_lifecycle(proc: subprocess.Popen, forward_signals: bool) -> Iterator[threading.Event]:
+    """Forward stop signals while owning the child, then restore and reap it."""
+    previous = {}
+    stop_requested = threading.Event()
+
+    def _forward(sig, _frame):
+        if proc.poll() is not None:
+            return
+        stop_requested.set()
+        try:
+            # Windows Popen rejects SIGINT; SIGTERM would forcibly terminate
+            # Node without its cleanups. SIGBREAK runs the TUI's exit handler.
+            proc.send_signal(signal.CTRL_BREAK_EVENT if sys.platform == "win32" else sig)
+        except ProcessLookupError:
+            pass
+
+    try:
+        if forward_signals:
+            signals = [signal.SIGINT, signal.SIGTERM]
+            extra = getattr(signal, "SIGBREAK" if sys.platform == "win32" else "SIGHUP", None)
+            if extra is not None:
+                signals.append(extra)
+            for sig in signals:
+                previous[sig] = signal.signal(sig, _forward)
+        yield stop_requested
+    finally:
+        try:
+            # Also reap the child when startup or the RPC host raises.
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+        finally:
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
+
+
 def run_subprocess(
     node_path: str,
     args: list[str],
@@ -138,30 +183,18 @@ def run_subprocess(
         stdin=None,
         stdout=None,
         stderr=None,
+        creationflags=_child_creation_flags(),
     )
 
-    if forward_signals:
-
-        def _forward(sig, _frame):
-            try:
-                proc.send_signal(sig)
-            except ProcessLookupError:
-                pass
-
-        signal.signal(signal.SIGINT, _forward)
-        signal.signal(signal.SIGTERM, _forward)
-        if hasattr(signal, "SIGHUP"):
-            signal.signal(signal.SIGHUP, _forward)
-
-    try:
-        return proc.wait()
-    except KeyboardInterrupt:
-        # 上方已转发信号；短暂等待优雅退出。
+    with _child_lifecycle(proc, forward_signals):
         try:
-            return proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            proc.kill()
             return proc.wait()
+        except KeyboardInterrupt:
+            try:
+                return proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                return proc.wait()
 
 
 # ---------------------------------------------------------------------------
@@ -657,14 +690,19 @@ def _spawn_with_rpc_socket(
     env[_RPC_SOCKET_ENV] = f"{host}:{port}"
     env[_RPC_TOKEN_ENV] = token
 
-    proc = subprocess.Popen(
-        [node_path, *args],
-        cwd=str(cwd),
-        stdin=None,
-        stdout=None,
-        stderr=None,
-        env=env,
-    )
+    try:
+        proc = subprocess.Popen(
+            [node_path, *args],
+            cwd=str(cwd),
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            env=env,
+            creationflags=_child_creation_flags(),
+        )
+    except BaseException:
+        server_sock.close()
+        raise
 
     return proc, server_sock, token
 
@@ -709,20 +747,16 @@ def run_subprocess_with_rpc(
     because it connected but never sent the token + ``system.hello``).
     """
     proc, server_sock, auth_token = _spawn_with_rpc_socket(node_path, args, cwd)
+    try:
+        with _child_lifecycle(proc, forward_signals) as stop_requested:
+            return _serve_rpc_child(proc, server_sock, auth_token, stop_requested)
+    finally:
+        server_sock.close()
 
-    if forward_signals:
 
-        def _forward(sig, _frame):
-            try:
-                proc.send_signal(sig)
-            except ProcessLookupError:
-                pass
-
-        signal.signal(signal.SIGINT, _forward)
-        signal.signal(signal.SIGTERM, _forward)
-        if hasattr(signal, "SIGHUP"):
-            signal.signal(signal.SIGHUP, _forward)
-
+def _serve_rpc_child(
+    proc: subprocess.Popen, server_sock: socket.socket, auth_token: str, stop_requested: threading.Event
+) -> int:
     proc_done = asyncio.Event()
 
     def _waiter() -> None:
@@ -743,6 +777,8 @@ def run_subprocess_with_rpc(
 
     async def _main() -> bool:
         _loop_holder["loop"] = asyncio.get_running_loop()
+        if proc.poll() is not None:
+            proc_done.set()
 
         # 在握手时限内等待子进程连接。让 `accept` 与 `proc.wait()` 竞速，使提前退出的
         # 子进程立即返回，而不是停满 5 秒。
@@ -788,13 +824,10 @@ def run_subprocess_with_rpc(
                 _conn_holder["conn"].close()
             except OSError:
                 pass
-        # 2）关闭监听套接字。
-        try:
-            server_sock.close()
-        except OSError:
-            pass
 
     if not handshake_ok:
+        if stop_requested.is_set() and proc.poll() is not None:
+            return proc.returncode
         print(
             f"✗ RPC handshake timeout ({_RPC_HANDSHAKE_TIMEOUT_S:.0f}s); is the Node side using the new IPC bridge?",
             file=sys.stderr,
@@ -829,7 +862,7 @@ def _is_abnormal_child_exit(exit_code: int) -> bool:
     RPC-handshake failure path (which reports itself).
 
     The graceful signal codes mirror apps/tui gracefulExit.ts, which maps SIGHUP
-    to 129 (terminal closed), SIGINT to 130 (Ctrl+C) and SIGTERM to 143
+    to 129 (terminal closed), SIGINT/SIGBREAK to 130 (Ctrl+C/Windows stop) and SIGTERM to 143
     (kill / process manager) through one clean-exit path. A hard SIGKILL (137)
     is left abnormal. ``_RPC_HANDSHAKE_EXIT_CODE`` is 3."""
     return exit_code not in (0, 129, 130, 143, _RPC_HANDSHAKE_EXIT_CODE)
